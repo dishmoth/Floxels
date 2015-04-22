@@ -6,13 +6,11 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.*;
-import java.awt.image.*;
 import java.util.*;
 
-public class Env {
+import com.badlogic.gdx.Gdx;
 
-  static private Component kOwner;
+public class Env {
 
   // enumeration of directions (used in various places)
   static public final int kDirectionUp    = 0,
@@ -21,22 +19,21 @@ public class Env {
                           kDirectionRight = 3;
   
   // size of a square tile
-  static private final int kTileWidth = 58;
+  static private int kTileWidth = 58;
   
   // number of tiles in the game area
   static private final int kNumTilesX = 10,
                            kNumTilesY = 10;
   
-  // size of the full game canvas
-  static private int kScreenWidth, 
-                     kScreenHeight;
-  
   // frame rate
-  static private final int kTicksPerSecond = 30;
+  static public final int   TICKS_PER_SEC = 30;
+  static public final float TICK_TIME     = 1.0f/TICKS_PER_SEC;
 
-  // whether to display debug messages, timing statistics
-  static private boolean kDebugMode        = false,
-                         kPerformanceStats = false;
+  // label to use for debug logging
+  private static final String kLogTag = "Floxels";
+  
+  // whether to display debug messages
+  static private boolean kDebugMode = true;
   
   // assorted helper objects
   static private Random       kRandom;
@@ -44,38 +41,35 @@ public class Env {
   static private Resources    kResources;
   static private Sounds       kSounds;
   
-  // some graphics objects
-  static private GraphicsEnvironment   kGraphicsEnvironment;
-  static private GraphicsDevice        kGraphicsDevice;
-  static private GraphicsConfiguration kGraphicsConfiguration;
-  
   // this sets up a global Env for the applet
-  static public void initialize(Component owner, 
-                                int screenWidth, int screenHeight) {
+  static public void initialize() {
   
-    kOwner = owner;
-
-    assert( screenWidth > 0 && screenHeight > 0 );
-    kScreenWidth  = screenWidth;
-    kScreenHeight = screenHeight;
-    
     kRandom       = new Random();
     kMouseMonitor = new MouseMonitor();
     kResources    = new Resources();
     kSounds       = new Sounds();
 
-    kGraphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    kGraphicsDevice = kGraphicsEnvironment.getDefaultScreenDevice();
-    kGraphicsConfiguration = owner.getGraphicsConfiguration();
-    
   } // initialize()
 
-  // whether debug messages, timing statistics should be displayed
+  // whether debug messages are displayed
   static public boolean debugMode() { return kDebugMode; }
-  static public boolean performanceStats() { return kPerformanceStats; }
-  static public void setVerbose() { kDebugMode = kPerformanceStats = true; }
 
+  // display debug text
+  static public void debug(String message) { 
+    
+    if ( kDebugMode ) Gdx.app.log(kLogTag, message);
+    
+  } // debug()
+  
+  // display debug text for an exception
+  static public void debug(String message, Exception ex) { 
+    
+    if ( kDebugMode ) Gdx.app.log(kLogTag, message, ex);
+    
+  } // debug()
+  
   // return the dimensions of a tile
+  static public void setTileWidth(int w) { kTileWidth = w; }
   static public int tileWidth() { return kTileWidth; }
 
   // return the size of the game area in tiles
@@ -87,15 +81,8 @@ public class Env {
   static public int gameHeight() { return kTileWidth*kNumTilesY; }
   
   // return the top-left corner of the game area
-  static public int gameOffsetX() { return (screenWidth()-gameWidth())/2; }
-  static public int gameOffsetY() { return (screenHeight()-gameHeight())/2; }
-  
-  // return dimensions of full game canvas
-  static public int screenWidth()  { return kScreenWidth; }
-  static public int screenHeight() { return kScreenHeight; }
-
-  // frame rate
-  static public int ticksPerSecond() { return kTicksPerSecond; }
+  static public int gameOffsetX() { return (Gdx.graphics.getWidth()-gameWidth())/2; }
+  static public int gameOffsetY() { return (Gdx.graphics.getHeight()-gameHeight())/2; }
   
   // return reference to mouse monitor
   static public MouseMonitor mouse() { return kMouseMonitor; }
@@ -106,44 +93,14 @@ public class Env {
   // return reference to game audio
   static public Sounds sounds() { return kSounds; }
 
-  // return a non-transparent buffered image suited to the graphics device
-  static public BufferedImage createOpaqueImage(int width, int height) {
-    
-    assert( kGraphicsConfiguration != null );
-    return kGraphicsConfiguration.createCompatibleImage(width, height,
-                                                        Transparency.OPAQUE);
-    
-  } // createOpaqueImage()
-  
-  // return a transparent buffered image suited to the graphics device
-  static public BufferedImage createTranslucentImage(int width, int height) {
-    
-    assert( kGraphicsConfiguration != null );
-    return kGraphicsConfiguration.createCompatibleImage(width, height,
-                                                    Transparency.TRANSLUCENT);
-    
-  } // createTranslucentImage()
-  
-  // comment on available accelerated memory
-  static public void reportAcceleratedMemory() {
-
-    if ( !kPerformanceStats || kGraphicsDevice == null ) return;
-    int am = kGraphicsDevice.getAvailableAcceleratedMemory();
-    System.out.println("accelerated memory: "  + (am/1024) + "K");
-    
-  } // reportAcceleratedMemory();
-  
-  // called when a break in the action (to collect garbage) won't be noticed
-  static public void naturalBreak() { System.gc(); }
-  
   // end the game, close the window (could be done better?)
   static public void exitGame() {
     
-    if ( kOwner != null && kOwner instanceof MainWindow ) {
-      ((MainWindow)kOwner).exit();
-    } else {
+    //if ( kOwner != null && kOwner instanceof MainWindow ) {
+    //  ((MainWindow)kOwner).exit();
+    //} else {
       System.exit(0);
-    }
+    //}
     
   } // exitGame()
   

@@ -9,6 +9,8 @@ package com.dishmoth.floxels;
 import java.awt.*;
 import java.util.*;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 // all of the active Sprites in the game are under the care of this manager
 // the SpriteManager's two main functions are to update all of Sprites
 // and to draw them all in the correct order
@@ -168,11 +170,11 @@ public class SpriteManager {
   // display the Sprites
   // the drawing order is based on the Sprites' "screen layer" values
   // if the Sprite has a SpriteWindow then that clips the drawing
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
     
     for ( Sprite s : mSpriteList ) {
       if ( s.mDrawDisabled ) continue;
-      s.draw(g2);
+      s.draw(batch);
     }
     
   } // draw()

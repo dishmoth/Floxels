@@ -12,7 +12,7 @@ import java.util.Arrays;
 public class FlowGrid {
 
   // number of relaxation steps on the grid, depending on refinement
-  static private final int kNumSmoothIterations = 2,
+  static private final int kNumSmoothIterations = 1,//!!!2,
                            kNumCoarseIterations = 20;
 
   // if true then a full solution is only calculated in specified regions

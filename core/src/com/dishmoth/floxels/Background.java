@@ -6,12 +6,18 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.awt.image.WritableRaster;
+//import java.awt.Color;
+//import java.awt.Graphics2D;
+//import java.awt.image.BufferedImage;
+//import java.awt.image.DataBufferInt;
+//import java.awt.image.WritableRaster;
 import java.util.LinkedList;
+
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.Texture.TextureWrap;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // static image of the maze and its background 
 public class Background extends Sprite {
@@ -19,29 +25,27 @@ public class Background extends Sprite {
   // how this sprite is drawn relative to others
   private static final int kScreenLayer = 0;
   
-  // colour around the edge of the maze
-  private static final Color kBorderColour = Color.WHITE;
-  
-  // range of background colours
-  private static final Color kLightColour = new Color(189, 188, 141),
-                             kDarkColour  = new Color(175, 173, 126);
+  // range of background colours (r,g,b out of 255)
+  private static final int kLightColour[] = { 189, 188, 141 },
+                           kDarkColour[]  = { 175, 173, 126 };
 
   // details of textured tile image for the background
-  private static final int     kNoiseImageSize  = 200,
-                               kNoiseSize       = 8;
-  private static final float   kGradientDeltaX  = -0.3f,
-                               kGradientDeltaY  = -0.5f;
-  private static final float   kLightCutoff     = 5.0f,
-                               kDarkCutoff      = -2.0f;
+  private static final int   kNoiseImageSize  = 256,
+                             kNoiseSize       = 8;
+  private static final float kGradientDeltaX  = -0.3f,
+                             kGradientDeltaY  = -0.5f;
+  private static final float kLightCutoff     = 5.0f,
+                             kDarkCutoff      = -2.0f;
+  
+  // how much the noise is stretched to cover the game screen
+  private static final float kNoiseRepeats = 2.3f;
   
   // textured background tile
-  private static BufferedImage kNoiseImage = null;
+  private static Pixmap  kNoiseImage   = null;
+  private static Texture kNoiseTexture = null;
   
   // reference to the maze object
   private Maze mMaze;
-  
-  // the image to be displayed
-  private BufferedImage mImage;
   
   // constructor
   public Background(Maze maze) {
@@ -50,8 +54,8 @@ public class Background extends Sprite {
     
     mMaze = maze;
     
-    if ( kNoiseImage == null ) kNoiseImage = makeNoise();
-    updateImage();
+    if ( kNoiseImage == null ) makeNoise();
+//    updateImage();
     
   } // constructor
 
@@ -65,24 +69,20 @@ public class Background extends Sprite {
   } // calcNoise()
   
   // build a noisy background image
-  static private BufferedImage makeNoise() {
+  static private void makeNoise() {
     
     final long seed = 1; 
     Perlin2D noise = new Perlin2D(seed, kNoiseSize);
-    BufferedImage image = new BufferedImage(kNoiseImageSize, kNoiseImageSize,
-                                            BufferedImage.TYPE_INT_RGB);
+    kNoiseImage = new Pixmap(kNoiseImageSize, kNoiseImageSize,
+                             Pixmap.Format.RGB888);
     
-    final int rL = kLightColour.getRed(),
-              gL = kLightColour.getGreen(),
-              bL = kLightColour.getBlue();
-    final int rD = kDarkColour.getRed(),
-              gD = kDarkColour.getGreen(),
-              bD = kDarkColour.getBlue();
+    final int rL = kLightColour[0],
+              gL = kLightColour[1],
+              bL = kLightColour[2];
+    final int rD = kDarkColour[0],
+              gD = kDarkColour[1],
+              bD = kDarkColour[2];
 
-    WritableRaster raster = image.getRaster();
-    int pixels[] = ((DataBufferInt)(raster.getDataBuffer())).getData();
-    int pixInd = 0;
-    
     final float scale = kNoiseSize/(float)kNoiseImageSize;
     final float deltaX = kGradientDeltaX*scale,
                 deltaY = kGradientDeltaY*scale;
@@ -99,45 +99,16 @@ public class Background extends Sprite {
         final int r = Math.round( h*rL + (1-h)*rD ),
                   g = Math.round( h*gL + (1-h)*gD ),
                   b = Math.round( h*bL + (1-h)*bD );
-        final int rgb = (r<<16) + (g<<8) + b;
-        pixels[pixInd++] = rgb;
+        final int rgba = (r<<24) + (g<<16) + (b<<8) + 255;
+        kNoiseImage.drawPixel(ix, iy, rgba);
       }
     }
-
-    return image;
+    
+    kNoiseTexture = new Texture(kNoiseImage);
+    kNoiseTexture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+    kNoiseTexture.setWrap(TextureWrap.Repeat, TextureWrap.Repeat);
     
   } // makeNoise()
-  
-  // prepare the background image including with the maze walls
-  public void updateImage() {
-    
-    if ( mImage == null ) {
-      mImage = Env.createOpaqueImage(Env.screenWidth(), Env.screenHeight());
-    }
-    
-    Graphics2D g2 = mImage.createGraphics();
-    g2.setBackground(kBorderColour);
-    g2.clearRect(0, 0, Env.screenWidth(), Env.screenHeight());
-
-    g2.setClip(Env.gameOffsetX(), Env.gameOffsetY(), 
-               Env.gameWidth(), Env.gameHeight());
-    final int ny = (int)Math.ceil( Env.gameHeight() / (float)kNoiseImageSize ),
-              nx = (int)Math.ceil( Env.gameWidth() / (float)kNoiseImageSize );
-    for ( int iy = 0 ; iy < ny ; iy++ ) {
-      for ( int ix = 0 ; ix < nx ; ix++ ) {
-        g2.drawImage(kNoiseImage, 
-                     Env.gameOffsetX() + ix*kNoiseImageSize, 
-                     Env.gameOffsetY() + iy*kNoiseImageSize, 
-                     null);
-      }
-    }
-    g2.setClip(0, 0, Env.screenWidth(), Env.screenHeight());
-    
-    MazePainter.draw(g2, mMaze, Env.gameOffsetX(), Env.gameOffsetY());
-    
-    g2.dispose();
-    
-  } // prepareImage()
   
   // nothing to do
   @Override
@@ -148,9 +119,15 @@ public class Background extends Sprite {
 
   // display the image
   @Override
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
 
-    g2.drawImage(mImage, 0, 0, null);
+    batch.draw(kNoiseTexture,
+               Env.gameOffsetX(), Env.gameOffsetY(),
+               Env.gameWidth(), Env.gameHeight(),
+               0.0f, 0.0f,
+               kNoiseRepeats, kNoiseRepeats);
+
+    MazePainter.draw(batch, mMaze);
     
   } // Sprite.draw()
   

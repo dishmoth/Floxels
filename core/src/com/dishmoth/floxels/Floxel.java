@@ -10,18 +10,18 @@ package com.dishmoth.floxels;
 public final class Floxel {
 
   // number of different populations
-  public static int numTypes() { return 2; }
+  public static final int NUM_TYPES = 2;
   
   // number of different shades within a colour scheme
-  public static int numShades() { return 16; }
+  public static final int NUM_SHADES = 16;
   
   // number of faces, and their different types 
-  public static int numFaces() { return 8; }
-  public static int numNormalFaces() { return 7; }
-  public static int numExpressions() { return 5; }
-  public static int blinkFace() { return 5; }
-  public static int stunFace() { return 6; }
-  public static int splatFace() { return 7; }
+  public static final int NUM_FACES = 8;
+  public static final int NUM_NORMAL_FACES = 7;
+  public static final int NUM_EXPRESSIONS = 5;
+  public static final int BLINK_FACE = 5;
+  public static final int STUN_FACE = 6;
+  public static final int SPLAT_FACE = 7;
   
   // different types of behaviour
   public enum State { UNUSED, NORMAL, SPLATTED, RECLAIMED, STUNNED };

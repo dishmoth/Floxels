@@ -9,6 +9,8 @@ package com.dishmoth.floxels;
 import java.awt.Graphics2D;
 import java.util.*;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 // a Sprite is an independent game entity
 // usually each Sprite has an associated image on the game screen
 //
@@ -114,13 +116,7 @@ abstract public class Sprite implements Comparable<Sprite> {
                         LinkedList<Sprite> killTheseSprites,
                         LinkedList<StoryEvent> newStoryEvents) { }
   
-  // returns the outline of the sprite, used to determine collisions
-  // result may depend on the class of the other sprite in the collision
-  // null (default implementation) means no collision is possible
-  // this is the "standard" collision interface but it isn't compulsory
-  //public Collider getCollider(Class whoWantsToKnow) { return null; }
-  
   // display the Sprite's image on the screen
-  abstract public void draw(Graphics2D g2);
+  abstract public void draw(SpriteBatch batch);
   
 } // class Sprite

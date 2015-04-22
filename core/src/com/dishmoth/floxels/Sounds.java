@@ -199,6 +199,8 @@ public class Sounds {
   // start a sound appropriate to the recent casualty counts
   public void playDeathSounds(int killCount[]) {
     
+    if ( !mAvailable || mMuted ) return;
+
     assert( killCount.length == kNumFloxelTypes );
     
     for ( int k = 0 ; k < kNumFloxelTypes ; k++ ) {

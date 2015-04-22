@@ -16,7 +16,7 @@ import javax.sound.sampled.*;
 public class Resources {
 
   // path for files
-  static protected final String kRootPackageName = "floxels/";
+  static protected final String kRootPackageName = "";
   
   // constructor
   public Resources() {
@@ -38,30 +38,30 @@ public class Resources {
   
   } // openResourceStream()
 
-  // return an image from file (exception if not known)
-  public BufferedImage loadImage(String resourceName) {
-    
-    BufferedImage image = null;
-    
-    try {
-
-      InputStream inS = openResourceStream(resourceName);
-      BufferedInputStream inB = new BufferedInputStream(inS);
-        
-      image = ImageIO.read(inB);
-      
-      inB.close();
-        
-    } catch (Exception ex) {
-      throw new RuntimeException("Resources.loadImage(): "
-                                 + "error reading \"" + resourceName 
-                                 + "\": " + ex.getClass().getName() 
-                                 + " " + ex.getMessage());
-    }
-    
-    return image;
-    
-  } // loadImage()
+//  // return an image from file (exception if not known)
+//  public BufferedImage loadImage(String resourceName) {
+//    
+//    BufferedImage image = null;
+//    
+//    try {
+//
+//      InputStream inS = openResourceStream(resourceName);
+//      BufferedInputStream inB = new BufferedInputStream(inS);
+//        
+//      image = ImageIO.read(inB);
+//      
+//      inB.close();
+//        
+//    } catch (Exception ex) {
+//      throw new RuntimeException("Resources.loadImage(): "
+//                                 + "error reading \"" + resourceName 
+//                                 + "\": " + ex.getClass().getName() 
+//                                 + " " + ex.getMessage());
+//    }
+//    
+//    return image;
+//    
+//  } // loadImage()
   
   /*
   // return the contents of a sound file as a Clip object
@@ -112,7 +112,7 @@ public class Resources {
       if ( fileName.endsWith(".ogg") ) {
 
         InputStream inStream = url.openStream();
-        effect = OggDecode.toSoundEffect(inStream);
+        effect = null; //OggDecode.toSoundEffect(inStream);
         inStream.close();
 
       } else {

@@ -1,5 +1,5 @@
 /*
- *  FluidStory.java
+ *  FloxelsStory.java
  *  Copyright Simon Hern 2010
  *  Contact: dishmoth@yahoo.co.uk, www.dishmoth.com
  */
@@ -9,7 +9,7 @@ package com.dishmoth.floxels;
 import java.util.*;
 
 // controlling class for the game
-public class FloxelStory extends Story {
+public class FloxelsStory extends Story {
   
   // enumeration of population types
   static private final int kMajorityType = 0,
@@ -109,7 +109,7 @@ public class FloxelStory extends Story {
   } // initialize()
 
   // constructor
-  public FloxelStory() {
+  public FloxelsStory() {
 
     initialize();
 
@@ -160,7 +160,7 @@ public class FloxelStory extends Story {
     addBouncers(spriteManager);
     
     if ( mRestartTimer > 0.0f && mChangeTimer == 0.0f ) {
-      mRestartTimer -= 1.0f/Env.ticksPerSecond();
+      mRestartTimer -= Env.TICK_TIME;
       if ( mRestartTimer <= 0.0f ) {
         assert( mFloxels.numFloxels(kMajorityType) == mMajorityPopulation );
         assert( mCursor == null );
@@ -172,7 +172,7 @@ public class FloxelStory extends Story {
     }
 
     if ( mChangeTimer > 0.0f ) {
-      mChangeTimer -= 1.0f/Env.ticksPerSecond();
+      mChangeTimer -= Env.TICK_TIME;
       boolean changed = false;
       while ( mChangeTimer <= 0.0f ) {
         mMaze.applyDifference(mMazeDeltas.pop());
@@ -189,13 +189,13 @@ public class FloxelStory extends Story {
           Env.sounds().playMorphSound();
           mChanging = false;
         }
-        mBackground.updateImage();
+        //mBackground.updateImage();
         for ( Flow flow : mFlows ) prepareFlow(flow, mMaze);
       }
     }
     
     if ( mIntroTimer > 0.0f ) {
-      mIntroTimer -= 1.0f/Env.ticksPerSecond();
+      mIntroTimer -= Env.TICK_TIME;
       if ( mIntroTimer <= 0.0f ) {
         mFloxels.releaseFloxels(0, mMajorityPopulation, 5.0f, 5.0f, 0.1f);
         mRestartTimer = kRestartDelay;
@@ -221,7 +221,7 @@ public class FloxelStory extends Story {
     if ( total == 0 ) return;
     
     final float minFrac = minNum/(float)total;
-    final float dt = 1.0f/Env.ticksPerSecond();
+    final float dt = Env.TICK_TIME;
     
     // how tasty the minority population looks
     float huntStrength = kHuntStrength * mDifficultyFactor;
@@ -297,7 +297,7 @@ public class FloxelStory extends Story {
   
   // bring the flow fields up-to-date 
   private void updateFlows(SpriteManager spriteManager) {
-    
+
     mFloxels.defineFlockingSources();
     mFloxels.addHuntingSources();
 
@@ -327,7 +327,7 @@ public class FloxelStory extends Story {
       
     } else if ( mNewBouncerTimer > 0.0f ) {
       
-      mNewBouncerTimer -= 1.0f/Env.ticksPerSecond();
+      mNewBouncerTimer -= Env.TICK_TIME;
       if ( mNewBouncerTimer <= 0.0f ) {
         spriteManager.addSprite(new Bouncer(mMaze, mFloxels));
         Env.sounds().playSpawnSound();
@@ -551,4 +551,4 @@ public class FloxelStory extends Story {
     
   } // switchPopulations()
   
-} // class FloxelStory
+} // class FloxelsStory

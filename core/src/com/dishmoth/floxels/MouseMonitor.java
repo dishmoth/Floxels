@@ -6,11 +6,10 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.*;
-import java.awt.event.*;
+import com.badlogic.gdx.Gdx;
 
 // monitor mouse behaviour within game component
-public class MouseMonitor implements MouseListener, MouseMotionListener {
+public class MouseMonitor {
 
   // record of the state of the mouse pointer
   public static class State {
@@ -35,66 +34,29 @@ public class MouseMonitor implements MouseListener, MouseMotionListener {
     
   } // constructor
   
-  // monitor the mouse on this component
-  public void monitor(Component target) {
-    
-    if ( target == null ) return;
-    target.addMouseListener(this);
-    target.addMouseMotionListener(this);
-    
-  } // monitor()
-  
   // retrieve the current state of the pointer
-  public synchronized State getState() {
+  public State getState() {
 
     return new State(mPointerX, mPointerY, mButton1, mButton2);
     
   } // getState()
   
   // update current state of the pointer and the main button
-  // (button: -1 => released, +1 => pressed, 0 => no change)
-  private synchronized void updateState(int x, int y, int button1, int button2) {
+  public void updateState() {
+
+    mButton1 = mButton2 = false;
     
-    if ( x >= 0 && x < Env.screenWidth() &&
-         y >= 0 && y < Env.screenHeight() ) {
-      mPointerX = x;
-      mPointerY = y;
-      if ( button1 != 0 ) mButton1 = (button1 == +1);
-      if ( button2 != 0 ) mButton2 = (button2 == +1);
-    } else {
-      mPointerX = mPointerY = -1;
-      mButton1 = mButton2 = false;
+    final int numPointers = 2;
+    for ( int ptrInd = 0 ; ptrInd < numPointers ; ptrInd++ ) {
+      if ( Gdx.input.isTouched(ptrInd) ) {
+        float x = Gdx.input.getX(ptrInd),
+              y = Gdx.input.getY(ptrInd);
+        mPointerX = (int)x;
+        mPointerY = (int)(Gdx.graphics.getHeight() - y);
+        mButton1 = true;
+      }
     }
     
   } // updateState()
-  
-  // functions from MouseListener interface
-  public void mouseClicked(MouseEvent e) {
-    updateState(e.getX(), e.getY(), 0, 0);
-  } // MouseListener.mouseClicked()
-  public void mouseEntered(MouseEvent e) {
-    updateState(e.getX(), e.getY(), -1, -1);
-  } // MouseListener.mouseEntered()
-  public void mouseExited(MouseEvent e) {
-    updateState(-1, -1, -1, -1);
-  } // MouseListener.mouseExited()
-  public void mousePressed(MouseEvent e) {
-    int button1 = ( (e.getButton()==MouseEvent.BUTTON1) ? +1 : 0 );
-    int button2 = ( (e.getButton()!=MouseEvent.BUTTON1) ? +1 : 0 );
-    updateState(e.getX(), e.getY(), button1, button2);
-  } // MouseListener.mousePressed()
-  public void mouseReleased(MouseEvent e) {
-    int button1 = ( (e.getButton()==MouseEvent.BUTTON1) ? -1 : 0 );
-    int button2 = ( (e.getButton()!=MouseEvent.BUTTON1) ? -1 : 0 );
-    updateState(e.getX(), e.getY(), button1, button2);
-  } // MouseListener.mouseReleased()
-  
-  // functions from MouseMotionListener interface
-  public void mouseDragged(MouseEvent e) {
-    updateState(e.getX(), e.getY(), 0, 0);
-  } // MouseMotionListener.mouseDragged()
-  public void mouseMoved(MouseEvent e) {
-    updateState(e.getX(), e.getY(), 0, 0);
-  } // MouseMotionListener.mouseMoved()
   
 } // class MouseMonitor

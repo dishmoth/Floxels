@@ -6,15 +6,17 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-import java.awt.geom.Path2D;
-import java.awt.geom.RoundRectangle2D;
-import java.awt.image.BufferedImage;
+//import java.awt.BasicStroke;
+//import java.awt.Color;
+//import java.awt.Graphics2D;
+//import java.awt.RenderingHints;
+//import java.awt.Stroke;
+//import java.awt.geom.Path2D;
+//import java.awt.geom.RoundRectangle2D;
+//import java.awt.image.BufferedImage;
 import java.util.LinkedList;
+
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // bouncing bonus ball
 public class Bouncer extends Sprite implements SourceTerm {
@@ -48,22 +50,22 @@ public class Bouncer extends Sprite implements SourceTerm {
   // appearance of the circular hoop
   private static final float   kHoopRadius    = 12.3f;
   private static final int     kHoopWidth     = 29;
-  private static final Stroke  kLineStrokes[] = { new BasicStroke(5.5f),
-                                                  new BasicStroke(3.5f),
-                                                  new BasicStroke(1.5f) };
-  private static final Color   kLineColours[] = { new Color(0,0,0, 100),
-                                                  new Color(0,0,0),
-                                                  new Color(200,200,200) };
-  private static BufferedImage kHoopImage     = null;
+//  private static final Stroke  kLineStrokes[] = { new BasicStroke(5.5f),
+//                                                  new BasicStroke(3.5f),
+//                                                  new BasicStroke(1.5f) };
+//  private static final Color   kLineColours[] = { new Color(0,0,0, 100),
+//                                                  new Color(0,0,0),
+//                                                  new Color(200,200,200) };
+//  private static BufferedImage kHoopImage     = null;
 
   // appearance of the contained sparks
   private static final int     kSparkPoints    = 5,
                                kSparkWidth     = 9;
   private static final float   kSparkRadiusMax = 4.0f,
                                kSparkRadiusMin = 1.7f;
-  static private final Color   kBlankColour    = new Color(0,0,0,0);
-  private static final Stroke  kLineStroke     = new BasicStroke(1.0f);
-  private static BufferedImage kSparkImage     = null;
+//  static private final Color   kBlankColour    = new Color(0,0,0,0);
+//  private static final Stroke  kLineStroke     = new BasicStroke(1.0f);
+//  private static BufferedImage kSparkImage     = null;
 
   // details of sparks clustered in hoop
   private static final int   kNumSparks     = 10;
@@ -92,99 +94,99 @@ public class Bouncer extends Sprite implements SourceTerm {
   // scale factor when the bouncer is growing or shrinking
   private float mSize;
   
-  public static void initialize() {
-
-    if ( kSparkImage != null ) return;
-
-    makeHoopImage();
-    makeSparkImage();
-    
-  } // initialize()
+//  public static void initialize() {
+//
+//    if ( kSparkImage != null ) return;
+//
+//    makeHoopImage();
+//    makeSparkImage();
+//    
+//  } // initialize()
 
   // build a full-size circle image
-  private static void makeHoopImage() {
-    
-    kHoopImage = Env.createTranslucentImage(kHoopWidth, kHoopWidth);
-    Graphics2D g2 = kHoopImage.createGraphics();
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-    
-    g2.setBackground(kBlankColour);
-    g2.clearRect(0, 0, kHoopWidth, kHoopWidth);
-
-    drawHoop(g2, kHoopWidth/2, kHoopWidth/2, 1.0f);
-    
-    g2.dispose();
-    
-  } // makeHoopImage()
+//  private static void makeHoopImage() {
+//    
+//    kHoopImage = Env.createTranslucentImage(kHoopWidth, kHoopWidth);
+//    Graphics2D g2 = kHoopImage.createGraphics();
+//    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+//                        RenderingHints.VALUE_ANTIALIAS_ON);
+//    
+//    g2.setBackground(kBlankColour);
+//    g2.clearRect(0, 0, kHoopWidth, kHoopWidth);
+//
+//    drawHoop(g2, kHoopWidth/2, kHoopWidth/2, 1.0f);
+//    
+//    g2.dispose();
+//    
+//  } // makeHoopImage()
   
   // render a circle
-  private static void drawHoop(Graphics2D g2, int x, int y, float scale) {
-    
-    final float r = kHoopRadius*scale;
-    RoundRectangle2D hoop = new RoundRectangle2D.Float(x+0.5f-r, y+0.5f-r, 
-                                                       2*r, 2*r, 2*r, 2*r);
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-    for ( int k = 0 ; k < kLineColours.length ; k++ ) {
-      g2.setColor(kLineColours[k]);
-      g2.setStroke(kLineStrokes[k]);
-      g2.draw(hoop);
-    }
-    
-  } // drawHoop()
+//  private static void drawHoop(Graphics2D g2, int x, int y, float scale) {
+//    
+//    final float r = kHoopRadius*scale;
+//    RoundRectangle2D hoop = new RoundRectangle2D.Float(x+0.5f-r, y+0.5f-r, 
+//                                                       2*r, 2*r, 2*r, 2*r);
+//    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+//                        RenderingHints.VALUE_ANTIALIAS_ON);
+//    for ( int k = 0 ; k < kLineColours.length ; k++ ) {
+//      g2.setColor(kLineColours[k]);
+//      g2.setStroke(kLineStrokes[k]);
+//      g2.draw(hoop);
+//    }
+//    
+//  } // drawHoop()
   
   // build a small star image
-  private static void makeSparkImage() {
-
-    BufferedImage image = Env.createTranslucentImage(kSparkWidth, kSparkWidth);
-    Graphics2D g2 = image.createGraphics();
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-    
-    g2.setBackground(kBlankColour);
-    g2.clearRect(0, 0, kSparkWidth, kSparkWidth);
-
-    final float dTheta = (float)Math.PI/kSparkPoints;
-
-    Path2D star = new Path2D.Float();
-    for ( int k = 0 ; k < 2*kSparkPoints ; k++ ) {
-      final float theta = (k+0.25f)*dTheta,
-                  r     = (k%2 == 0) ? kSparkRadiusMax : kSparkRadiusMin;
-      final float x     = r*(float)Math.cos(theta),
-                  y     = r*(float)Math.sin(theta);
-
-      if ( k == 0 ) star.moveTo(x, y);
-      else          star.lineTo(x, y);
-    }
-    star.closePath();
-
-    g2.translate(0.5f*kSparkWidth, 0.5f*kSparkWidth);
-    
-    g2.setColor(Color.WHITE);
-    g2.fill(star);
-    
-    g2.setColor(Color.BLACK);
-    g2.setStroke(kLineStroke);
-    g2.draw(star);
-    
-    g2.dispose();
-    
-    kSparkImage = Env.createTranslucentImage(kSparkWidth, kSparkWidth);
-    g2 = kSparkImage.createGraphics();
-    g2.setBackground(kBlankColour);
-    g2.clearRect(0, 0, image.getWidth(), image.getHeight());
-    g2.drawImage(image, 0, 0, null);
-    g2.dispose();
-    
-  } // makeSparkImage()
+//  private static void makeSparkImage() {
+//
+//    BufferedImage image = Env.createTranslucentImage(kSparkWidth, kSparkWidth);
+//    Graphics2D g2 = image.createGraphics();
+//    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+//                        RenderingHints.VALUE_ANTIALIAS_ON);
+//    
+//    g2.setBackground(kBlankColour);
+//    g2.clearRect(0, 0, kSparkWidth, kSparkWidth);
+//
+//    final float dTheta = (float)Math.PI/kSparkPoints;
+//
+//    Path2D star = new Path2D.Float();
+//    for ( int k = 0 ; k < 2*kSparkPoints ; k++ ) {
+//      final float theta = (k+0.25f)*dTheta,
+//                  r     = (k%2 == 0) ? kSparkRadiusMax : kSparkRadiusMin;
+//      final float x     = r*(float)Math.cos(theta),
+//                  y     = r*(float)Math.sin(theta);
+//
+//      if ( k == 0 ) star.moveTo(x, y);
+//      else          star.lineTo(x, y);
+//    }
+//    star.closePath();
+//
+//    g2.translate(0.5f*kSparkWidth, 0.5f*kSparkWidth);
+//    
+//    g2.setColor(Color.WHITE);
+//    g2.fill(star);
+//    
+//    g2.setColor(Color.BLACK);
+//    g2.setStroke(kLineStroke);
+//    g2.draw(star);
+//    
+//    g2.dispose();
+//    
+//    kSparkImage = Env.createTranslucentImage(kSparkWidth, kSparkWidth);
+//    g2 = kSparkImage.createGraphics();
+//    g2.setBackground(kBlankColour);
+//    g2.clearRect(0, 0, image.getWidth(), image.getHeight());
+//    g2.drawImage(image, 0, 0, null);
+//    g2.dispose();
+//    
+//  } // makeSparkImage()
   
   // constructor
   public Bouncer(Maze maze, Floxels floxels) {
 
     super(kScreenLayer);
     
-    initialize();
+//    initialize();
     
     assert( maze != null );
     mMaze = maze;
@@ -269,7 +271,7 @@ public class Bouncer extends Sprite implements SourceTerm {
       }
     }
     
-    final float dt = 1.0f/Env.ticksPerSecond();
+    final float dt = Env.TICK_TIME;
 
     mXVel += dt*xForce*kBounceForce;
     mYVel += dt*yForce*kBounceForce;
@@ -385,15 +387,15 @@ public class Bouncer extends Sprite implements SourceTerm {
 
   // display the object
   @Override
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
 
     final int x0 = (int)Math.floor(mXPos*Env.tileWidth()) + Env.gameOffsetX(),
               y0 = (int)Math.floor(mYPos*Env.tileWidth()) + Env.gameOffsetY();
 
     if ( mSize == 1.0f ) {
-      g2.drawImage(kHoopImage, x0-kHoopWidth/2, y0-kHoopWidth/2, null);
+      //g2.drawImage(kHoopImage, x0-kHoopWidth/2, y0-kHoopWidth/2, null);
     } else {
-      drawHoop(g2, x0, y0, mSize);
+      //drawHoop(g2, x0, y0, mSize);
     }
 
     if ( mSize < 0.5f ) return;
@@ -406,15 +408,15 @@ public class Bouncer extends Sprite implements SourceTerm {
         dy = Env.randomFloat(-1.0f, +1.0f);
       } while ( dx*dx + dy*dy > 1.0f );
 
-      drawSpark(g2, Math.round(x0+radius*dx), Math.round(y0+radius*dy));
+      drawSpark(batch, Math.round(x0+radius*dx), Math.round(y0+radius*dy));
     }
     
   } // Sprite.draw()
 
   // draw an individual spark (at pixel position)
-  static public void drawSpark(Graphics2D g2, int x, int y) {
+  static public void drawSpark(SpriteBatch batch, int x, int y) {
     
-    g2.drawImage(kSparkImage, x-kSparkWidth/2, y-kSparkWidth/2, null);
+    //g2.drawImage(kSparkImage, x-kSparkWidth/2, y-kSparkWidth/2, null);
     
   } // drawSpark()
   

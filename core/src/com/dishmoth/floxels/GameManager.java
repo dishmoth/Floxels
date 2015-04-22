@@ -9,6 +9,8 @@ package com.dishmoth.floxels;
 import java.awt.*;
 import java.util.*;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 // class that orchestrates the behaviour of the game
 // basically comprises a Story object and a list of Sprite objects
 public class GameManager {
@@ -56,9 +58,9 @@ public class GameManager {
 
   // draw the current game screen
   // (for camera tricks a screen buffer is used)
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
 
-    mSpriteManager.draw(g2);
+    mSpriteManager.draw(batch);
     
   } // draw()
   

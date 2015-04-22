@@ -6,14 +6,16 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-import java.awt.geom.Path2D;
-import java.awt.image.BufferedImage;
+//import java.awt.BasicStroke;
+//import java.awt.Color;
+//import java.awt.Graphics2D;
+//import java.awt.RenderingHints;
+//import java.awt.Stroke;
+//import java.awt.geom.Path2D;
+//import java.awt.image.BufferedImage;
 import java.util.LinkedList;
+
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // summon one floxel population to a location
 public class Summoner extends Sprite implements SourceTerm {
@@ -35,14 +37,14 @@ public class Summoner extends Sprite implements SourceTerm {
   // image details
   static private final int     kImageWidth    = 3,
                                kImageMargin   = 5;
-  static private final Stroke  kLineStrokes[] = { new BasicStroke(5.0f),
-                                                  new BasicStroke(3.0f),
-                                                  new BasicStroke(1.5f) };
-  static private final Color   kLineColours[] = { new Color(0,0,0, 100),
-                                                  new Color(0,0,0),
-                                                  new Color(200,200,200) };
-  static private final Color   kBlankColour   = new Color(0,0,0,0);
-  static private BufferedImage kImages[]      = null;
+//  static private final Stroke  kLineStrokes[] = { new BasicStroke(5.0f),
+//                                                  new BasicStroke(3.0f),
+//                                                  new BasicStroke(1.5f) };
+//  static private final Color   kLineColours[] = { new Color(0,0,0, 100),
+//                                                  new Color(0,0,0),
+//                                                  new Color(200,200,200) };
+//  static private final Color   kBlankColour   = new Color(0,0,0,0);
+//  static private BufferedImage kImages[]      = null;
 
   // animation details
   static private final int   kCrossMin  = -1,
@@ -64,65 +66,65 @@ public class Summoner extends Sprite implements SourceTerm {
   private int mFloxelType;
 
   // prepare images, etc.
-  static public void initialize() {
-
-    if ( kImages != null ) return;
-    
-    kImages = new BufferedImage[4];
-
-    final int h = kImageWidth + 2*kImageMargin,
-              w = (2*kImageWidth-1) + 2*kImageMargin; 
-    
-    kImages[Env.kDirectionUp] = Env.createTranslucentImage(w, h);
-    Graphics2D g2 = kImages[Env.kDirectionUp].createGraphics();
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-    g2.setBackground(kBlankColour);
-    g2.clearRect(0, 0, w, h);
-    Path2D shape = new Path2D.Float();
-    shape.moveTo(0.5f*w-kImageWidth, kImageMargin);
-    shape.lineTo(0.5f*w, h-kImageMargin);
-    shape.lineTo(0.5f*w+kImageWidth, kImageMargin);
-    for ( int k = 0 ; k < kLineColours.length ; k++ ) {
-      g2.setColor(kLineColours[k]);
-      g2.setStroke(kLineStrokes[k]);
-      g2.draw(shape);
-    }
-    g2.dispose();
-    
-    kImages[Env.kDirectionDown] = Env.createTranslucentImage(w, h);
-    g2 = kImages[Env.kDirectionDown].createGraphics();
-    g2.setBackground(kBlankColour);
-    g2.clearRect(0, 0, w, h);
-    g2.rotate(Math.PI, 0.5f*w, 0.5f*h);
-    g2.drawImage(kImages[Env.kDirectionUp], 0, 0, null);
-    g2.dispose();
-    
-    kImages[Env.kDirectionRight] = Env.createTranslucentImage(h, w);
-    g2 = kImages[Env.kDirectionRight].createGraphics();
-    g2.setBackground(kBlankColour);
-    g2.clearRect(0, 0, h, w);
-    g2.rotate(0.5f*Math.PI);
-    g2.translate(0, -h);
-    g2.drawImage(kImages[Env.kDirectionUp], 0, 0, null);
-    g2.dispose();
-    
-    kImages[Env.kDirectionLeft] = Env.createTranslucentImage(h, w);
-    g2 = kImages[Env.kDirectionLeft].createGraphics();
-    g2.setBackground(kBlankColour);
-    g2.clearRect(0, 0, h, w);
-    g2.rotate(Math.PI, 0.5f*h, 0.5f*w);
-    g2.drawImage(kImages[Env.kDirectionRight], 0, 0, null);
-    g2.dispose();
-    
-  } // initialize()
+//  static public void initialize() {
+//
+//    if ( kImages != null ) return;
+//    
+//    kImages = new BufferedImage[4];
+//
+//    final int h = kImageWidth + 2*kImageMargin,
+//              w = (2*kImageWidth-1) + 2*kImageMargin; 
+//    
+//    kImages[Env.kDirectionUp] = Env.createTranslucentImage(w, h);
+//    Graphics2D g2 = kImages[Env.kDirectionUp].createGraphics();
+//    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+//                        RenderingHints.VALUE_ANTIALIAS_ON);
+//    g2.setBackground(kBlankColour);
+//    g2.clearRect(0, 0, w, h);
+//    Path2D shape = new Path2D.Float();
+//    shape.moveTo(0.5f*w-kImageWidth, kImageMargin);
+//    shape.lineTo(0.5f*w, h-kImageMargin);
+//    shape.lineTo(0.5f*w+kImageWidth, kImageMargin);
+//    for ( int k = 0 ; k < kLineColours.length ; k++ ) {
+//      g2.setColor(kLineColours[k]);
+//      g2.setStroke(kLineStrokes[k]);
+//      g2.draw(shape);
+//    }
+//    g2.dispose();
+//    
+//    kImages[Env.kDirectionDown] = Env.createTranslucentImage(w, h);
+//    g2 = kImages[Env.kDirectionDown].createGraphics();
+//    g2.setBackground(kBlankColour);
+//    g2.clearRect(0, 0, w, h);
+//    g2.rotate(Math.PI, 0.5f*w, 0.5f*h);
+//    g2.drawImage(kImages[Env.kDirectionUp], 0, 0, null);
+//    g2.dispose();
+//    
+//    kImages[Env.kDirectionRight] = Env.createTranslucentImage(h, w);
+//    g2 = kImages[Env.kDirectionRight].createGraphics();
+//    g2.setBackground(kBlankColour);
+//    g2.clearRect(0, 0, h, w);
+//    g2.rotate(0.5f*Math.PI);
+//    g2.translate(0, -h);
+//    g2.drawImage(kImages[Env.kDirectionUp], 0, 0, null);
+//    g2.dispose();
+//    
+//    kImages[Env.kDirectionLeft] = Env.createTranslucentImage(h, w);
+//    g2 = kImages[Env.kDirectionLeft].createGraphics();
+//    g2.setBackground(kBlankColour);
+//    g2.clearRect(0, 0, h, w);
+//    g2.rotate(Math.PI, 0.5f*h, 0.5f*w);
+//    g2.drawImage(kImages[Env.kDirectionRight], 0, 0, null);
+//    g2.dispose();
+//    
+//  } // initialize()
   
   // constructor (position specified)
   public Summoner(float xPos, float yPos, int floxelType) {
     
     super(kScreenLayer);
   
-    initialize();
+//    initialize();
     
     setPosition(xPos, yPos);
     reset();
@@ -136,7 +138,7 @@ public class Summoner extends Sprite implements SourceTerm {
     
     super(kScreenLayer);
 
-    initialize();
+//    initialize();
   
     setPosition(-1, -1);
     reset();
@@ -182,7 +184,7 @@ public class Summoner extends Sprite implements SourceTerm {
 
     assert( mXPos >= 0 && mYPos >= 0 );
 
-    final float dt = 1.0f/Env.ticksPerSecond();
+    final float dt = Env.TICK_TIME;
     
     mLifeTime -= dt;
     if ( mLifeTime < 1.0e-4f ) {
@@ -238,7 +240,7 @@ public class Summoner extends Sprite implements SourceTerm {
 
   // display the target position
   @Override
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
 
     assert( mXPos >= 0 && mYPos >= 0 );
     
@@ -246,7 +248,8 @@ public class Summoner extends Sprite implements SourceTerm {
               iy = Env.gameOffsetY() + Math.round(mYPos*Env.tileWidth());
 
     int delta = crossSize();
-    
+
+    /*
     g2.drawImage(kImages[Env.kDirectionUp], 
                  ix - kImages[Env.kDirectionUp].getWidth()/2, 
                  iy - kImages[Env.kDirectionUp].getHeight() - delta,
@@ -263,6 +266,7 @@ public class Summoner extends Sprite implements SourceTerm {
                  ix + 1 + delta,
                  iy - kImages[Env.kDirectionRight].getHeight()/2,
                  null);
+    */
     
   } // Sprite.draw()
 

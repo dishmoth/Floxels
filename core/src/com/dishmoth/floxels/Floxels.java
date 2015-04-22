@@ -6,8 +6,9 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.*;
 import java.util.*;
+
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // collection of flocking, flowing particles
 public class Floxels extends Sprite {
@@ -33,10 +34,10 @@ public class Floxels extends Sprite {
                              kMaxReclaimTime = 1.0f;
   
   // lengths of time when stunned (game ticks)
-  static private final int kStunTimeMax  = (int)(2.0f*Env.ticksPerSecond()),
-                           kStunTimeMin  = (int)(1.0f*Env.ticksPerSecond()),
-                           kStunTimeHalt = (int)(0.17f*Env.ticksPerSecond()),
-                           kStunTimeWake = (int)(0.5f*Env.ticksPerSecond());
+  static private final int kStunTimeMax  = (int)(2.0f*Env.TICKS_PER_SEC),
+                           kStunTimeMin  = (int)(1.0f*Env.TICKS_PER_SEC),
+                           kStunTimeHalt = (int)(0.17f*Env.TICKS_PER_SEC),
+                           kStunTimeWake = (int)(0.5f*Env.TICKS_PER_SEC);
   
   // default velocity scale for floxels
   static private final float kDefaultVelocityFactor = 3.0f;
@@ -221,8 +222,8 @@ public class Floxels extends Sprite {
       floxel.mCluster = (byte)Env.randomInt( Clusters.maxClusterScore()+1 );
       floxel.mNeedsNudge = false;
       floxel.mType = (byte)type;
-      floxel.mShade = (byte)Env.randomInt( Floxel.numShades() );
-      floxel.mFace = (byte)Env.randomInt( Floxel.numExpressions() );
+      floxel.mShade = (byte)Env.randomInt( Floxel.NUM_SHADES );
+      floxel.mFace = (byte)Env.randomInt( Floxel.NUM_EXPRESSIONS );
       
       mNumActiveFloxels[type]++;
       num--;
@@ -236,8 +237,8 @@ public class Floxels extends Sprite {
     assert( type >= 0 && type < mNumFloxelTypes );
     assert( mNumActiveFloxels[type] >= num );
 
-    final int minTime = Math.round(kMinReclaimTime * Env.ticksPerSecond()),
-              maxTime = Math.round(kMaxReclaimTime * Env.ticksPerSecond());
+    final int minTime = Math.round(kMinReclaimTime * Env.TICKS_PER_SEC),
+              maxTime = Math.round(kMaxReclaimTime * Env.TICKS_PER_SEC);
     
     int minClusterScore = 10;
     int numSteps = 0;
@@ -286,7 +287,7 @@ public class Floxels extends Sprite {
         floxel.mState = Floxel.State.STUNNED;
         floxel.mTimer = (short)kStunTimeMax;
         floxel.mCluster = 0;
-        floxel.mFace = (byte)Floxel.stunFace();
+        floxel.mFace = (byte)Floxel.STUN_FACE;
       }
     }
     
@@ -298,7 +299,7 @@ public class Floxels extends Sprite {
     stunFloxels(x, y, 0.0f, radius, -1);
     
   } // stunFloxels()
-  
+
   // advance by one frame
   @Override
   public void advance(LinkedList<Sprite> addTheseSprites,
@@ -329,7 +330,7 @@ public class Floxels extends Sprite {
   // update position for a floxel
   private void advanceFloxel(Floxel floxel) {
 
-    final float dt = 1.0f/Env.ticksPerSecond();
+    final float dt = Env.TICK_TIME;
     
     final int type = floxel.mType;
     Flow flow = mFlows[type];
@@ -345,9 +346,8 @@ public class Floxels extends Sprite {
       case SPLATTED: {
         assert( floxel.mTimer > 0 );
         if ( --floxel.mTimer == 0 ) {
-          floxel.mState = Floxel.State.UNUSED;
-          //floxel.mState = Floxel.State.NORMAL;
-          //floxel.mFace = (byte)Env.randomInt(Floxel.numExpressions());
+          floxel.mState = Floxel.State.NORMAL;
+          floxel.mFace = (byte)Env.randomInt(Floxel.NUM_EXPRESSIONS);
         }
       } break;
       
@@ -359,7 +359,7 @@ public class Floxels extends Sprite {
         } else if ( floxel.mTimer < kStunTimeWake ) {
           slowdown = 1.0f - floxel.mTimer/(float)kStunTimeWake;
         } else if ( floxel.mTimer == kStunTimeWake ) {
-          floxel.mFace = (byte)Env.randomInt(Floxel.numExpressions());
+          floxel.mFace = (byte)Env.randomInt(Floxel.NUM_EXPRESSIONS);
           slowdown = 0.0f;
         } else if ( floxel.mTimer < kStunTimeMax-kStunTimeHalt ) {
           slowdown = 0.0f;
@@ -457,7 +457,7 @@ public class Floxels extends Sprite {
       }
     }
     
-    final int splatTime = Math.round( Env.ticksPerSecond()*kSplatTime );
+    final int splatTime = Math.round( Env.TICKS_PER_SEC*kSplatTime );
     
     int killCount[] = new int[mNumFloxelTypes];
     for ( Floxel floxel : mFloxels ) {
@@ -473,7 +473,7 @@ public class Floxels extends Sprite {
         floxel.mCluster = 0;
         floxel.mType = (byte)attackType;
         floxel.mShade = 0;
-        floxel.mFace = (byte)Floxel.splatFace();
+        floxel.mFace = (byte)Floxel.SPLAT_FACE;
         killCount[1-attackType] += 1;
       }
     }
@@ -545,7 +545,7 @@ public class Floxels extends Sprite {
           else if ( n < floxel.mCluster ) floxel.mCluster--;
         }
         
-        floxel.mShade = (byte)( (floxel.mCluster * (Floxel.numShades()-1))
+        floxel.mShade = (byte)( (floxel.mCluster * (Floxel.NUM_SHADES-1))
                                 / Clusters.maxClusterScore() );
       }
       
@@ -556,21 +556,21 @@ public class Floxels extends Sprite {
   // animate the faces of the floxels in a random-ish way
   private void updateFaces() {
     
-    final int numFaces  = Floxel.numExpressions(),
-              blinkFace = Floxel.blinkFace();
+    final int numFaces  = Floxel.NUM_EXPRESSIONS,
+              blinkFace = Floxel.BLINK_FACE;
     
     int newFace = Env.randomInt(numFaces);
     float blink = Env.randomFloat() + kBlinkFraction;
 
     final int numChanges = Math.round( (kNumFloxels/kFaceChangeSeconds)
-                                       / Env.ticksPerSecond() );
+                                       / Env.TICKS_PER_SEC );
 
     // change the expressions of some faces, starting some blinking
     for ( int k = 0 ; k < numChanges ; k++ ) {
       Floxel floxel = mFloxels[mFaceChangeIndex];
       if ( floxel.mState == Floxel.State.NORMAL ) {
-        assert( floxel.mFace != Floxel.splatFace() && 
-                floxel.mFace != Floxel.stunFace() );
+        assert( floxel.mFace != Floxel.SPLAT_FACE && 
+                floxel.mFace != Floxel.STUN_FACE );
         if ( blink >= 1.0f ) {
           floxel.mFace = (byte)blinkFace;
           blink -= 1.0f;
@@ -721,17 +721,17 @@ public class Floxels extends Sprite {
   
   // display the floxels
   @Override
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
     
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState == Floxel.State.UNUSED ||
            floxel.mState == Floxel.State.SPLATTED ) continue;
-      FloxelPainter.draw(g2, floxel);
+      FloxelPainter.draw(batch, floxel);
     }
     
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState != Floxel.State.SPLATTED ) continue;
-      FloxelPainter.draw(g2, floxel);
+      FloxelPainter.draw(batch, floxel);
     }
     
   } // Sprite.draw()

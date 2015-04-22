@@ -6,10 +6,12 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
+//import java.awt.Color;
+//import java.awt.Graphics2D;
+//import java.awt.image.BufferedImage;
 import java.util.LinkedList;
+
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // track and display the current score
 public class Score extends Sprite {
@@ -23,7 +25,7 @@ public class Score extends Sprite {
                                kImageWidths[]  = {  6,  6,  6,  5,  7, 
                                                     5,  6,  6,  6,  6 };
   private static int           kImageHeight    = 0;
-  private static BufferedImage kImages[]       = null;
+//  private static BufferedImage kImages[]       = null;
   
   // position of the score (relative to bottom-left of game area)
   private static final int kOffsetX = 6,
@@ -33,37 +35,37 @@ public class Score extends Sprite {
   private int mBaseValue,
               mValue;
 
-  // prepare text images
-  static public void initialize() {
-
-    if ( kImages != null ) return;
-
-    BufferedImage sourceImage = Env.resources().loadImage("Numbers.png");
-    kImageHeight = sourceImage.getHeight();
-    
-    assert( kImageOffsets.length == kImageWidths.length );
-    Color blankColour = new Color(0, 0, 0, 0);
-    
-    kImages = new BufferedImage[kImageOffsets.length];
-    for ( int k = 0 ; k < kImages.length ; k++ ) {
-      BufferedImage im = Env.createTranslucentImage(kImageWidths[k], 
-                                                    kImageHeight);
-      Graphics2D g2 = im.createGraphics();
-      g2.setBackground(blankColour);
-      g2.clearRect(0, 0, im.getWidth(), im.getHeight());
-      g2.drawImage(sourceImage, -kImageOffsets[k], 0, null);
-      g2.dispose();
-      kImages[k] = im;
-    }
-    
-  } // initialize()
+//  // prepare text images
+//  static public void initialize() {
+//
+//    if ( kImages != null ) return;
+//
+//    BufferedImage sourceImage = Env.resources().loadImage("Numbers.png");
+//    kImageHeight = sourceImage.getHeight();
+//    
+//    assert( kImageOffsets.length == kImageWidths.length );
+//    Color blankColour = new Color(0, 0, 0, 0);
+//    
+//    kImages = new BufferedImage[kImageOffsets.length];
+//    for ( int k = 0 ; k < kImages.length ; k++ ) {
+//      BufferedImage im = Env.createTranslucentImage(kImageWidths[k], 
+//                                                    kImageHeight);
+//      Graphics2D g2 = im.createGraphics();
+//      g2.setBackground(blankColour);
+//      g2.clearRect(0, 0, im.getWidth(), im.getHeight());
+//      g2.drawImage(sourceImage, -kImageOffsets[k], 0, null);
+//      g2.dispose();
+//      kImages[k] = im;
+//    }
+//    
+//  } // initialize()
   
   // constructor
   public Score() {
     
     super(kScreenLayer);
     
-    initialize();
+//    initialize();
 
     reset();
     
@@ -87,7 +89,7 @@ public class Score extends Sprite {
 
   // display some numbers
   @Override
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
 
     final int value = mBaseValue + mValue;
     assert( value >= 0 );
@@ -103,7 +105,7 @@ public class Score extends Sprite {
     while ( base > 1 ) {
       base /= 10;
       final int n = (value/base) % 10;
-      g2.drawImage(kImages[n], x, y0, null);
+      //g2.drawImage(kImages[n], x, y0, null);
       x += kImageWidths[n];
     }
     

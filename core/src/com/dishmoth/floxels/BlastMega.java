@@ -6,8 +6,9 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.Graphics2D;
 import java.util.LinkedList;
+
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // a big blast that stuns enemy floxels
 public class BlastMega extends Sprite implements SourceTerm {
@@ -70,8 +71,8 @@ public class BlastMega extends Sprite implements SourceTerm {
     
     super(kScreenLayer);
   
-    Blast.initialize();
-    Bouncer.initialize();
+//    Blast.initialize();
+//    Bouncer.initialize();
     
     assert( x > 0 && x < Env.numTilesX() );
     assert( y > 0 && y < Env.numTilesY() );
@@ -109,7 +110,7 @@ public class BlastMega extends Sprite implements SourceTerm {
       newStoryEvents.add(new EventUnleashed());
     }
     
-    final float dt = 1.0f/Env.ticksPerSecond();
+    final float dt = Env.TICK_TIME;
     mLifeSeconds -= dt;
     if ( mLifeSeconds <= 1.0e-3f ) {
       killTheseSprites.add(this);
@@ -176,17 +177,17 @@ public class BlastMega extends Sprite implements SourceTerm {
   // display the blast image 
   // (reuses drawing code from Blast and Bouncer classes)
   @Override
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
 
     float life = mLifeSeconds - (kLifeTimeSeconds - Blast.kLifeTimeSeconds);
     if ( life <= 0.0f ) return;
-    Blast.draw(g2, mXPos, mYPos, life, mVariation);
+    //Blast.draw(g2, mXPos, mYPos, life, mVariation);
 
     for ( Spark spark : mSparks ) {
       if ( spark == null ) continue;
       final int x = (int)Math.floor(spark.mXPos * Env.tileWidth()),
                 y = (int)Math.floor(spark.mYPos * Env.tileWidth());
-      Bouncer.drawSpark(g2, x, y);
+      //Bouncer.drawSpark(g2, x, y);
     }
     
   } // Sprite.draw()

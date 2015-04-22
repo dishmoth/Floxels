@@ -6,9 +6,14 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 
 // class that draws the wall of a maze
 public class MazePainter {
@@ -16,14 +21,20 @@ public class MazePainter {
   // number of pixels to cross the wall image
   private static final int kWallWidth = 10;
   
+  // raw image data
+  static private Pixmap  kPixmap;
+  
+  // texture holding packed wall/corner images
+  static private Texture kTexture;
+  
   // images for each type of join between wall sections
   // ordered according to: index = (wall goes right) + 2*(wall goes up) 
   //                             + 4*(wall goes left) + 8*(wall goes down) - 1
   private static final int     kNumCorners     = 15;
-  private static BufferedImage kCornerImages[] = null;
+  private static TextureRegion kCornerImages[] = null;
   
   // two different wall section images
-  private static BufferedImage kWallImageHoriz = null,
+  private static TextureRegion kWallImageHoriz = null,
                                kWallImageVert  = null;
   
   // load resources, etc.
@@ -33,65 +44,47 @@ public class MazePainter {
     
     // prepare the corner images
 
-    BufferedImage sourceImage = Env.resources().loadImage("Corners.png");
-    assert( sourceImage.getWidth()  == 5*kWallWidth );
-    assert( sourceImage.getHeight() == 3*kWallWidth );
+    Pixmap sourceImage = new Pixmap( Gdx.files.internal("Corners.png") );
+    assert( sourceImage.getWidth()  == 5*(kWallWidth+2) );
+    assert( sourceImage.getHeight() == 3*(kWallWidth+2) );
+
+    kPixmap = new Pixmap(MathUtils.nextPowerOfTwo(sourceImage.getWidth()), 
+                         MathUtils.nextPowerOfTwo(sourceImage.getHeight()),
+                         Format.RGBA8888);
+    kPixmap.drawPixmap(sourceImage, 0, 0);
     
-    Color blankColour = new Color(0, 0, 0, 0);
-
-    kCornerImages = new BufferedImage[kNumCorners];
+    kTexture = new Texture(kPixmap);
+    kTexture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+    
+    kCornerImages = new TextureRegion[kNumCorners];
     for ( int k = 0 ; k < kNumCorners ; k++ ) {
-      final int x = kWallWidth*(k % 5),
-                y = kWallWidth*(k / 5); 
-      
-      BufferedImage im = Env.createTranslucentImage(kWallWidth, kWallWidth);
-      Graphics2D g2 = im.createGraphics();
-      g2.setBackground(blankColour);
-      g2.clearRect(0, 0, kWallWidth, kWallWidth);
-      g2.drawImage(sourceImage, -x, -y, null);
-      g2.dispose();
-
-      kCornerImages[k] = im;
+      final int x = (kWallWidth+2)*(k % 5) + 1,
+                y = (kWallWidth+2)*(k / 5) + 1; 
+      kCornerImages[k] = new TextureRegion(kTexture, x, y+kWallWidth, 
+                                           kWallWidth, -kWallWidth);
     }
 
     // prepare the wall images
-    
-    final int wallLength = Env.tileWidth() - kWallWidth; 
-    final int repeats    = (wallLength + kWallWidth - 1)/kWallWidth;
-    
-    kWallImageHoriz = Env.createTranslucentImage(wallLength, kWallWidth);
-    Graphics2D g2 = kWallImageHoriz.createGraphics();
-    g2.setBackground(blankColour);
-    g2.clearRect(0, 0, wallLength, kWallWidth);
-    for ( int k = 0 ; k < repeats ; k++ ) {
-      g2.drawImage(kCornerImages[4], kWallWidth*k, 0, null);
-    }
-    g2.dispose();
-    
-    kWallImageVert = Env.createTranslucentImage(kWallWidth, wallLength);
-    g2 = kWallImageVert.createGraphics();
-    g2.setBackground(blankColour);
-    g2.clearRect(0, 0, kWallWidth, wallLength);
-    for ( int k = 0 ; k < repeats ; k++ ) {
-      g2.drawImage(kCornerImages[9], 0, kWallWidth*k, null);
-    }
-    g2.dispose();
-        
+
+    kWallImageHoriz = kCornerImages[4];
+    kWallImageVert  = kCornerImages[9];
+      
   } // initialize()
   
   // display the maze walls
-  static public void draw(Graphics2D g2, Maze maze, int x, int y) {
+  static public void draw(SpriteBatch batch, Maze maze) {
 
     initialize();
 
     final int delta = Env.tileWidth(),
-              eps   = kWallWidth;
-    final int xStart = x - eps/2,
-              yStart = y - eps/2;
+              eps   = Math.max(5, Math.round(kWallWidth*Env.tileWidth()/58.0f));
     
-    y = yStart;
+    final int xStart = Env.gameOffsetX() - eps/2,
+              yStart = Env.gameOffsetY() - eps/2;
+    
+    int y = yStart;
     for ( int iy = 0 ; iy <= maze.numTilesY() ; iy++ ) {
-      x = xStart;
+      int x = xStart;
       for ( int ix = 0 ; ix <= maze.numTilesX() ; ix++ ) {
         final boolean right = maze.horizWall(ix, iy),
                       up    = maze.vertWall(ix, iy-1),
@@ -99,9 +92,9 @@ public class MazePainter {
                       down  = maze.vertWall(ix, iy);
         final int index = 8*(down ? 1 : 0) + 4*(left  ? 1 : 0)
                         + 2*(up   ? 1 : 0) +   (right ? 1 : 0) - 1;
-        if ( index >= 0 ) g2.drawImage(kCornerImages[index], x, y, null);
-        if ( right )      g2.drawImage(kWallImageHoriz, x+eps, y, null);
-        if ( down )       g2.drawImage(kWallImageVert, x, y+eps, null);
+        if ( index >= 0 ) batch.draw(kCornerImages[index], x,y, eps,eps);
+        if ( right )      batch.draw(kWallImageHoriz, x+eps,y, delta-eps,eps);
+        if ( down )       batch.draw(kWallImageVert, x,y+eps, eps,delta-eps);
         x += delta;
       }
       y += delta;

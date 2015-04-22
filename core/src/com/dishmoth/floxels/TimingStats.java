@@ -9,81 +9,56 @@ package com.dishmoth.floxels;
 // collect timing statistics as the game is running
 class TimingStats {
 
-  // expected frame rate
-  private long mNanosPerTick;
+  // time between reports
+  private static final float kReportSeconds = 3.0f;
   
-  // assorted counters
-  private int  mNumTicks, mNumOverruns, mNumDrawSkips;
-  private long mNumNanos, mNumNanosInAdvance, mNumNanosInDraw;
-  private long mPeakNanos, mPeakNanosInAdvance, mPeakNanosInDraw;
+  // assorted measurements
+  private int   mNumUpdates;
+  private float mTotalSeconds,
+                mMinSeconds,
+                mMaxSeconds;
   
   // constructor
-  public TimingStats(long nanosPerTick) { 
+  public TimingStats() { 
 
-    mNanosPerTick = nanosPerTick;
     clear(); 
   
   } // constructor
   
   // reset counters
   public void clear() {
-  
-    mNumTicks = mNumOverruns = mNumDrawSkips = 0;
-    mNumNanos = mNumNanosInAdvance = mNumNanosInDraw = 0;
-    mPeakNanos = mPeakNanosInAdvance = mPeakNanosInDraw = 0;
+
+    mNumUpdates = 0;
+    mTotalSeconds = mMinSeconds = mMaxSeconds = 0.0f;
     
   } // clear()
   
   // update timing statistics after each tick 
-  public void update(long    nanosInTick,
-                     long    nanosInAdvance,
-                     long    nanosInDraw,
-                     boolean tickHasOverrun,
-                     boolean tickSkippedDraw) {
+  public void update(float seconds) {
     
-    mNumTicks++;
+    mTotalSeconds += seconds;
     
-    if ( tickHasOverrun ) mNumOverruns++;
-    if ( tickSkippedDraw ) mNumDrawSkips++;
+    if ( mNumUpdates == 0 ) {
+      mMinSeconds = mMaxSeconds = seconds;
+    } else {
+      if ( mMinSeconds > seconds ) mMinSeconds = seconds;
+      if ( mMaxSeconds < seconds ) mMaxSeconds = seconds;
+    }
     
-    mNumNanos += nanosInTick;
-    mPeakNanos = Math.max(nanosInTick, mPeakNanos);
-    mNumNanosInAdvance += nanosInAdvance;
-    mPeakNanosInAdvance = Math.max(nanosInAdvance, mPeakNanosInAdvance);
-    mNumNanosInDraw += nanosInDraw;
-    mPeakNanosInDraw = Math.max(nanosInDraw, mPeakNanosInDraw);
-  
+    mNumUpdates++;
+    
+    if ( mTotalSeconds > kReportSeconds ) {
+      Env.debug( String.format("%.1f", mNumUpdates/mTotalSeconds)
+               + " fps (mean="
+               + String.format("%.1f", 1000*mTotalSeconds/mNumUpdates)
+               + "ms, min="
+               + String.format("%.1f", 1000*mMinSeconds)
+               + "ms, max="
+               + String.format("%.1f", 1000*mMaxSeconds)
+               + "ms)" );
+      clear();
+    }
+    
   } // update()
-  
-  // text output
-  public String toString() {
-
-    int  numTicks = Math.max(1, mNumTicks);
-    long numNanos = Math.max(1, mNumNanos);
-
-    return new String(mNumTicks
-                      + " frames, "
-                      + String.format("%.1f", mNumTicks/(numNanos*1.0e-9f))
-                      + " per sec (max "
-                      + String.format("%.1f", mPeakNanos*1.0e-6f)
-                      + "ms), "
-                      + (100*mNumNanosInAdvance)/(numTicks*mNanosPerTick)
-                      + "% in advance (peak "
-                      + (100*mPeakNanosInAdvance)/mNanosPerTick
-                      + "%), "
-                      + (100*mNumNanosInDraw)/(numTicks*mNanosPerTick)
-                      + "% in draw (peak "
-                      + (100*mPeakNanosInDraw)/mNanosPerTick
-                      + "%), "
-                      + mNumOverruns 
-                      + " overrun (" 
-                      + (100*mNumOverruns)/numTicks
-                      + "%), "
-                      + mNumDrawSkips
-                      + " no draw ("
-                      + (100*mNumDrawSkips)/numTicks
-                      + "%)");
-    
-  } // toString()
   
 } // class TimingStats

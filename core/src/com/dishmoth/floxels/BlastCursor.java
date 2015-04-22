@@ -6,8 +6,9 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.Graphics2D;
 import java.util.LinkedList;
+
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // object for converting mouse clicks into floxel-herding blasts
 public class BlastCursor extends Sprite {
@@ -86,8 +87,9 @@ public class BlastCursor extends Sprite {
                       LinkedList<Sprite> killTheseSprites,
                       LinkedList<StoryEvent> newStoryEvents) {
 
-    final float dt = 1.0f/Env.ticksPerSecond();
-    
+    final float dt = Env.TICK_TIME;
+
+    Env.mouse().updateState();
     MouseMonitor.State state = Env.mouse().getState();
     final float x = (state.x - Env.gameOffsetX())/(float)Env.tileWidth(),
                 y = (state.y - Env.gameOffsetY())/(float)Env.tileWidth();
@@ -318,7 +320,7 @@ public class BlastCursor extends Sprite {
   
   // nothing to see here
   @Override
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
   } // Sprite.draw()
 
 } // class BlastCursor

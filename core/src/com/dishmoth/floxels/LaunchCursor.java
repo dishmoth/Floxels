@@ -6,13 +6,15 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.BasicStroke;
-import java.awt.Graphics2D;
-import java.awt.Color;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-import java.awt.geom.RoundRectangle2D;
+//import java.awt.BasicStroke;
+//import java.awt.Graphics2D;
+//import java.awt.Color;
+//import java.awt.RenderingHints;
+//import java.awt.Stroke;
+//import java.awt.geom.RoundRectangle2D;
 import java.util.LinkedList;
+
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // object for launching floxels at the position of a mouse click
 public class LaunchCursor extends Sprite implements SourceTerm {
@@ -46,12 +48,12 @@ public class LaunchCursor extends Sprite implements SourceTerm {
                              kHoopRadiusMax = 10.3f;
   
   // appearance of the bounding hoop
-  private static final Stroke kHoopLineStrokes[] = { new BasicStroke(6.8f),
-                                                     new BasicStroke(4.5f),
-                                                     new BasicStroke(1.8f) };
-  private static final Color kHoopLineColours[] = { new Color(0,0,0, 100),
-                                                    new Color(0,0,0),
-                                                    new Color(200,200,200) };
+//  private static final Stroke kHoopLineStrokes[] = { new BasicStroke(6.8f),
+//                                                     new BasicStroke(4.5f),
+//                                                     new BasicStroke(1.8f) };
+//  private static final Color kHoopLineColours[] = { new Color(0,0,0, 100),
+//                                                    new Color(0,0,0),
+//                                                    new Color(200,200,200) };
   
   // how strongly other floxels avoid the launch position
   private static final float kRepulsionStrength = 1000.0f;
@@ -105,6 +107,7 @@ public class LaunchCursor extends Sprite implements SourceTerm {
                       LinkedList<Sprite> killTheseSprites,
                       LinkedList<StoryEvent> newStoryEvents) {
 
+    Env.mouse().updateState();
     MouseMonitor.State state = Env.mouse().getState();
     
     mMouseXPos = (state.x - Env.gameOffsetX())/(float)Env.tileWidth();
@@ -124,7 +127,7 @@ public class LaunchCursor extends Sprite implements SourceTerm {
       Env.sounds().playSpawnSound();
     }
     if ( mStartTime > 0.0f ) {
-      mStartTime = Math.max(0.0f, mStartTime-1.0f/Env.ticksPerSecond());
+      mStartTime = Math.max(0.0f, mStartTime-Env.TICK_TIME);
     }
     
     if ( mLaunchXPos < 0 && mLaunchYPos < 0 ) {
@@ -143,7 +146,7 @@ public class LaunchCursor extends Sprite implements SourceTerm {
     }
 
     if ( mLaunchXPos >= 0 && mLaunchYPos >= 0 ) {
-      final int num = Math.min( Math.round(kLaunchRate/Env.ticksPerSecond()), 
+      final int num = Math.min( Math.round(kLaunchRate/Env.TICKS_PER_SEC), 
                                 mLaunchNum );
       mFloxels.releaseFloxels(mFloxelType, num, 
                               mLaunchXPos, mLaunchYPos, kLaunchRadius);
@@ -181,7 +184,7 @@ public class LaunchCursor extends Sprite implements SourceTerm {
   
   // draw some floxels around the mouse pointer
   @Override
-  public void draw(Graphics2D g2) {
+  public void draw(SpriteBatch batch) {
     
     if ( mLaunchXPos >= 0 || mLaunchYPos >= 0 ) return;    
     if ( mMouseXPos < 0 || mMouseYPos < 0 ) return;
@@ -192,15 +195,15 @@ public class LaunchCursor extends Sprite implements SourceTerm {
                 yHoop = mMouseYPos*Env.tileWidth() + Env.gameOffsetY() + 0.5f;
     final float t = (1.0f - mStartTime/(float)kSecondsTillStart),
                 r = kHoopRadiusMax*t + kHoopRadiusMin*(1-t);
-    RoundRectangle2D hoop = new RoundRectangle2D.Float(xHoop-r, yHoop-r, 
-                                                       2*r, 2*r, 2*r, 2*r);
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-    for ( int k = 0 ; k < kHoopLineColours.length ; k++ ) {
-      g2.setColor(kHoopLineColours[k]);
-      g2.setStroke(kHoopLineStrokes[k]);
-      g2.draw(hoop);
-    }
+    //RoundRectangle2D hoop = new RoundRectangle2D.Float(xHoop-r, yHoop-r, 
+    //                                                   2*r, 2*r, 2*r, 2*r);
+    //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+    //                    RenderingHints.VALUE_ANTIALIAS_ON);
+    //for ( int k = 0 ; k < kHoopLineColours.length ; k++ ) {
+    //  g2.setColor(kHoopLineColours[k]);
+    //  g2.setStroke(kHoopLineStrokes[k]);
+    //  g2.draw(hoop);
+    //}
     
     if ( t < 0.5f ) return;
     
@@ -220,10 +223,10 @@ public class LaunchCursor extends Sprite implements SourceTerm {
 
       floxel.mX = mMouseXPos + hoverRadius*dx; 
       floxel.mY = mMouseYPos + hoverRadius*dy;
-      floxel.mShade = (byte)Env.randomInt( Floxel.numShades()/4 );
-      floxel.mFace = (byte)Env.randomInt( Floxel.numExpressions() );
+      floxel.mShade = (byte)Env.randomInt( Floxel.NUM_SHADES/4 );
+      floxel.mFace = (byte)Env.randomInt( Floxel.NUM_EXPRESSIONS );
       
-      FloxelPainter.draw(g2, floxel);
+      FloxelPainter.draw(batch, floxel);
     }
     
   } // Sprite.draw()

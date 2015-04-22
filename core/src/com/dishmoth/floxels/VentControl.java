@@ -145,7 +145,7 @@ public class VentControl {
   // adjust the vents to control the flow
   public void advance() {
 
-    mNoiseTime += 1.0f/Env.ticksPerSecond();
+    mNoiseTime += Env.TICK_TIME;
     mNoiseTime = Env.fold(mNoiseTime, Perlin3D.period());
 
     trackEnemy();
@@ -211,7 +211,7 @@ public class VentControl {
       }
     }
 
-    final float delta = (1.0f/Env.ticksPerSecond()) / kActivationTime;
+    final float delta = Env.TICK_TIME / kActivationTime;
     if ( max == 0) {
       mTrackingX = mTrackingY = -1;
       mHuntActive = Math.max(0.0f, mHuntActive-delta);
@@ -221,7 +221,7 @@ public class VentControl {
     
     if ( maxTrack > 0 && maxTrack < max/2 ) {
       if ( mTrackingReset > 0.0f ) {
-        mTrackingReset -= 1.0f/Env.ticksPerSecond();
+        mTrackingReset -= Env.TICK_TIME;
         if ( mTrackingReset <= 0.0f ) {
           mTrackingReset = 0.0f;
           maxTrack = 0;
@@ -251,7 +251,7 @@ public class VentControl {
     final float dx = mTrackingX - mTargetX,
                 dy = mTrackingY - mTargetY;
     final float boost = ( mNoMercy ? 2.0f : 1.0f );
-    final float step = kTargetSpeed*boost/Env.ticksPerSecond();
+    final float step = kTargetSpeed*boost/Env.TICKS_PER_SEC;
 
     switch ( mTrackingMode ) {
       case kModeXOnly: {
@@ -289,7 +289,7 @@ public class VentControl {
     if ( mNoMercy ) {
       mTrackingMode = kModeXYBoth;
     } else {
-      mModeTimer -= 1.0f/Env.ticksPerSecond();
+      mModeTimer -= Env.TICK_TIME;
       if ( mModeTimer <= 0.0f ) {
         mTrackingMode = (mTrackingMode+Env.randomInt(kNumModes-1)+1)%kNumModes;
         mModeTimer = Env.randomFloat(kModeTimeMin, kModeTimeMax);
