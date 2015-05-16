@@ -56,7 +56,7 @@ public class FloxelsStory extends Story {
   private Floxels     mFloxels;
   private Maze        mMaze;
   private VentControl mVentControls[];
-  private Sprite      mCursor;
+  private Cursor      mCursor;
   private Score       mScore;
   
   // player's current level (0, 1, 2, ...)
@@ -133,17 +133,27 @@ public class FloxelsStory extends Story {
         it.remove();
       } // Story.EventGameBegins
 
-      if ( event instanceof LaunchCursor.EventLaunchComplete ) {
-        mStartleTimer = kStartleDelay;
-        mCursor = new BlastCursor(mMaze, mFloxels);
-        spriteManager.addSprite(mCursor);
-        it.remove();
-      } // LaunchCursor.EventLaunchComplete
+      //if ( event instanceof LaunchCursor.EventLaunchComplete ) {
+      //  mStartleTimer = kStartleDelay;
+      //  mCursor = new SummonCursor(mMaze, mFloxels);
+      //  spriteManager.addSprite(mCursor);
+      //  it.remove();
+      //} // LaunchCursor.EventLaunchComplete
+
+      //if ( event instanceof SummonCursor.EventCaptureComplete ) {
+      //  mCursor = new LaunchCursor(mFloxels.numReserveFloxels(kMinorityType),
+      //                             kMinorityType, mFloxels);
+      //  spriteManager.addSprite(mCursor);
+      //  it.remove();
+      //} // LaunchCursor.EventLaunchComplete
 
       if ( event instanceof Floxels.EventPopulationDestroyed ) {
         final int type = ((Floxels.EventPopulationDestroyed)event).mType;
-        if      ( type == kMajorityType ) newLevel(spriteManager);
-        else if ( type == kMinorityType ) restartLevel(spriteManager);
+        if ( type == kMajorityType ) {
+          newLevel(spriteManager);
+        } else if ( type == kMinorityType && mCursor.numCaptured() == 0 ) {
+          restartLevel(spriteManager);
+        }
         it.remove();
       } // Floxels.EventPopulationDestroyed
 
@@ -164,8 +174,9 @@ public class FloxelsStory extends Story {
       if ( mRestartTimer <= 0.0f ) {
         assert( mFloxels.numFloxels(kMajorityType) == mMajorityPopulation );
         assert( mCursor == null );
-        mCursor = new LaunchCursor(kMinorityPopulation, 
-                                   kMinorityType, mFloxels);
+        //mCursor = new LaunchCursor(kMinorityPopulation, 
+        //                           kMinorityType, mFloxels);
+        mCursor = new Cursor(mFloxels, kMinorityPopulation);
         spriteManager.addSprite(mCursor);
         mRestartTimer = 0.0f;
       }
@@ -225,7 +236,7 @@ public class FloxelsStory extends Story {
     
     // how tasty the minority population looks
     float huntStrength = kHuntStrength * mDifficultyFactor;
-    if ( mCursor instanceof LaunchCursor ) {
+    if ( minNum == 0 ) {
       huntStrength = 0.0f;
     } else if ( mStartleTimer > 0.0f ) {
       final float h = mStartleTimer/kStartleDelay;
@@ -383,10 +394,10 @@ public class FloxelsStory extends Story {
     else                     mMaxNumBouncers = 3;
     
     if ( Env.debugMode() ) {
-      System.out.println("Level " + mLevel 
-                         + " (" + mMajorityPopulation
-                         + " / " + mDifficultyFactor
-                         + " / " + mMaxNumBouncers + ")");
+      Env.debug("Level " + mLevel 
+                + " (" + mMajorityPopulation
+                + " / " + mDifficultyFactor
+                + " / " + mMaxNumBouncers + ")");
     }
     
   } // setLevelDifficulty()
@@ -482,7 +493,6 @@ public class FloxelsStory extends Story {
     mFloxels.reclaimFloxels(kMinorityPopulation, kMajorityType);
     
     spriteManager.removeSprite(mCursor);
-    if ( mCursor instanceof BlastCursor ) Env.sounds().stopMiniBlastSound();
     mCursor = null;
     mRestartTimer = kRestartDelay;
 
@@ -499,9 +509,14 @@ public class FloxelsStory extends Story {
     mLevel += 1;
     setLevelDifficulty();
 
-    assert( mFloxels.numFloxels(kMajorityType) == 0 );
+    assert( mFloxels.numFloxels(kMajorityType) == 0 ); 
+    assert( mCursor.numCaptured() == 0 );
     mScore.setCurrentValue( mFloxels.numFloxels(kMinorityType) );
     mScore.fixBaseValue();
+
+    mCursor.cancel();
+    spriteManager.removeSprite(mCursor);
+    mCursor = null;
     
     final int excess = mFloxels.numFloxels(kMinorityType) 
                        - mMajorityPopulation;
@@ -509,22 +524,19 @@ public class FloxelsStory extends Story {
 
     switchPopulations(spriteManager);
     
-    spriteManager.removeSprite(mCursor);
-    if ( mCursor instanceof BlastCursor ) Env.sounds().stopMiniBlastSound();
-    mCursor = null;
     mRestartTimer = kRestartLongDelay;
 
     for ( Sprite sp : spriteManager.list() ) {
       if ( sp instanceof Bouncer) ((Bouncer)sp).disappear();
     }
 
-    if ( (mLevel % 3) == 0 ) {
-      mMazeNum += 1;
-      Maze nextMaze = Mazes.get(mMazeNum);
-      mMaze.collectDifferences(nextMaze, mMazeDeltas);
-      mChanging = true;
-      mChangeTimer = kChangeFirstDelay;
-    }
+    //if ( (mLevel % 3) == 0 ) {
+    //  mMazeNum += 1;
+    //  Maze nextMaze = Mazes.get(mMazeNum);
+    //  mMaze.collectDifferences(nextMaze, mMazeDeltas);
+    //  mChanging = true;
+    //  mChangeTimer = kChangeFirstDelay;
+    //}
 
     Env.sounds().playSuccessSound();
     

@@ -41,14 +41,14 @@ public final class Floxel {
 
   // if true then the floxel is on top of another of the same type
   public boolean mNeedsNudge = false;
-
-  // which population the floxel belongs to (0 to numTypes()-1)
+  
+  // which population the floxel belongs to (0 to NUM_TYPES-1)
   public byte mType = 0;
 
-  // brightness of the floxel (0 to numShades()-1)
+  // brightness of the floxel (0 to NUM_SHADES-1)
   public byte mShade = 0;
   
-  // which face the floxel is showing (0 to numFaces()-1)
+  // which face the floxel is showing (0 to NUM_FACES-1)
   public byte mFace = 0;
   
 } // class Floxel

@@ -126,44 +126,30 @@ public class Summoner extends Sprite implements SourceTerm {
   
 //    initialize();
     
-    setPosition(xPos, yPos);
-    reset();
-    
-    mFloxelType = floxelType;
-    
-  } // constructor
-
-  // constructor (position unknown)
-  public Summoner(int floxelType) {
-    
-    super(kScreenLayer);
-
-//    initialize();
-  
-    setPosition(-1, -1);
-    reset();
-    
-    mFloxelType = floxelType;
-    
-  } // constructor
-
-  // specify or update the target position
-  public void setPosition(float xPos, float yPos) {
-
-    mXPos = xPos;
+    mXPos = xPos; 
     mYPos = yPos;
-    
     mLifeTime = kLifeTime;
+    mTime = 0.0f;
     
-  } // setPosition()
+    mFloxelType = floxelType;
+    
+  } // constructor
 
-  // reset the animation timer
-  public void reset() { mTime = 0.0f; }
-  
   // accessors
   public int floxelType() { return mFloxelType; }
   public float xPos() { return mXPos; }
   public float yPos() { return mYPos; }
+  
+  //
+  public void cancel(boolean immediate) { 
+    
+    if ( immediate ) mLifeTime = 0.0f;
+    else             mLifeTime = Math.min(mLifeTime, kFadeTime);
+    
+  } // cancel()
+  
+  //
+  public boolean isDead() { return (mLifeTime <= 0.0f); } 
   
   // current strength of summons
   public float strength() {
@@ -243,6 +229,7 @@ public class Summoner extends Sprite implements SourceTerm {
   public void draw(SpriteBatch batch) {
 
     assert( mXPos >= 0 && mYPos >= 0 );
+    assert( !isDead() );
     
     final int ix = Env.gameOffsetX() + Math.round(mXPos*Env.tileWidth()),
               iy = Env.gameOffsetY() + Math.round(mYPos*Env.tileWidth());

@@ -106,6 +106,12 @@ public class Floxels extends Sprite {
   // random modifications to the floxel faces 
   private int mFaceChangeIndex,
               mFaceChangeTailIndex;
+
+  // capture point to which floxels are pulled (unless type is -1)
+  private int   mPullType;
+  private float mPullXPos,
+                mPullYPos,
+                mPullRadius;
   
   // constructor
   public Floxels(Flow flows[]) {
@@ -143,6 +149,9 @@ public class Floxels extends Sprite {
     mFaceChangeIndex = 0;
     mFaceChangeTailIndex = -Math.round( kNumFloxels * kBlinkTimeSeconds 
                                         / kFaceChangeSeconds );
+
+    mPullType = -1;
+    mPullXPos = mPullYPos = mPullRadius = 0.0f;
     
   } // constructor
 
@@ -188,16 +197,22 @@ public class Floxels extends Sprite {
 
     assert( type >= 0 && type < mNumFloxelTypes );
     assert( num > 0 );
-    assert( radius > 0 && radius < Env.numTilesX()/2 );
+    assert( x >= 0 && x <= mGridXSize );
+    assert( y >= 0 && y <= mGridYSize );
+    assert( radius >= 0 );
     
     int numActive = 0;
     for ( int n : mNumActiveFloxels ) numActive += n;
     assert( numActive + num <= kNumFloxels );
 
-    x = Math.max(x, 1.01f*radius);
-    x = Math.min(x, mGridXSize - 1.01f*radius);
-    y = Math.max(y, 1.01f*radius);
-    y = Math.min(y, mGridYSize - 1.01f*radius);
+    final float margin = 0.001f;
+    radius = Math.max(radius, 2*margin); 
+    
+    final float dx0 = Math.max(-radius, margin-x),
+                dx1 = Math.min(+radius, mGridXSize-margin-x),
+                dy0 = Math.max(-radius, margin-y),
+                dy1 = Math.min(+radius, mGridYSize-margin-y);
+    assert( dx1 > dx0 && dy1 > dy0 );
     
     int index = Env.randomInt(kNumFloxels);
     while ( num > 0 ) {
@@ -210,14 +225,16 @@ public class Floxels extends Sprite {
       
       float dx, dy;
       do {
-        dx = Env.randomFloat(-1.0f, +1.0f); 
-        dy = Env.randomFloat(-1.0f, +1.0f);
-      } while ( dx*dx + dy*dy >= 1.0f );
-          
+        dx = radius*Env.randomFloat(-1.0f, +1.0f); 
+        dy = radius*Env.randomFloat(-1.0f, +1.0f);
+      } while ( dx*dx + dy*dy > radius*radius || 
+                dx < dx0 || dx > dx1 || 
+                dy < dy0 || dy > dy1 );
+      
       Floxel floxel = mFloxels[index];
       floxel.mState = Floxel.State.NORMAL;
-      floxel.mX = x + radius*dx; 
-      floxel.mY = y + radius*dy;
+      floxel.mX = x + dx; 
+      floxel.mY = y + dy;
       floxel.mTimer = 0;
       floxel.mCluster = (byte)Env.randomInt( Clusters.maxClusterScore()+1 );
       floxel.mNeedsNudge = false;
@@ -300,6 +317,36 @@ public class Floxels extends Sprite {
     
   } // stunFloxels()
 
+  // pull floxels to the cursor position and capture them
+  public int captureFloxels(float x, float y, 
+                            float pullRadius, float captureRadius,
+                            int type) {
+    
+    assert( x >= 0.0f && x < mGridXSize );
+    assert( y >= 0.0f && y < mGridYSize );
+    assert( pullRadius >= captureRadius && captureRadius > 0.0f );
+
+    mPullType = type;
+    mPullXPos = x;
+    mPullYPos = y;
+    mPullRadius = pullRadius;
+    
+    int numCaptured = 0;
+    for ( Floxel floxel : mFloxels ) {
+      if ( floxel.mState != Floxel.State.NORMAL &&
+           floxel.mState != Floxel.State.STUNNED ) continue;
+      if ( type >= 0 && floxel.mType != type ) continue;
+      final float dx = floxel.mX - x,
+                  dy = floxel.mY - y;
+      if ( dx*dx + dy*dy < captureRadius*captureRadius ) {
+        floxel.mState = Floxel.State.UNUSED;
+        numCaptured += 1;
+      }
+    }
+    return numCaptured;
+    
+  } // captureFloxels()
+  
   // advance by one frame
   @Override
   public void advance(LinkedList<Sprite> addTheseSprites,
@@ -320,10 +367,13 @@ public class Floxels extends Sprite {
     updateFaces();
 
     for ( int type = 0 ; type < mNumFloxelTypes ; type++ ) {
-      if ( mNumActiveFloxels[type] == 0 && oldNumFloxels[type] > 0 ) {
+      if ( mNumActiveFloxels[type] == 0 && 
+           oldNumFloxels[type] > 0 ) {
         newStoryEvents.add( new EventPopulationDestroyed(type) );
       }
     }
+
+    mPullType = -1;
     
   } // Sprite.advance()
 
@@ -403,25 +453,51 @@ public class Floxels extends Sprite {
     float dx = vx*dt,
           dy = vy*dt;
 
+    // don't let floxels pile up on each other
+    
     if ( floxel.mNeedsNudge ) {
       dx += kNudgeDistance*( Env.randomBoolean() ? +1 : -1 );
       dy += kNudgeDistance*( Env.randomBoolean() ? +1 : -1 );
     }
 
+    // check whether the floxel is being pulled to the cursor
+    
+    boolean ignoreWalls = false;
+    
+    if ( floxel.mType == mPullType ) {
+      float px = mPullXPos - floxel.mX,
+            py = mPullYPos - floxel.mY;
+      float p2 = px*px + py*py;
+      if ( p2 <= mPullRadius*mPullRadius ) {
+        float step = kMaxSpeed*dt;
+        if ( p2 < step*step ) {
+          dx = px;
+          dy = py;
+        } else {
+          float p = (float)Math.sqrt(p2);
+          dx = step*px/p;
+          dy = step*py/p;
+        }
+        ignoreWalls = true;
+      }
+    }
+    
     // update the floxel's position, avoiding maze walls
     
     float x = floxel.mX,
           y = floxel.mY;
     FlowBlock block = flow.blocks()[(int)Math.floor(y)][(int)Math.floor(x)];
 
-    if ( Math.floor(x+dx) == Math.floor(x) ||
+    if ( ignoreWalls || 
+         Math.floor(x+dx) == Math.floor(x) ||
          ( dx < 0 && !block.boundaryWest() ) ||
          ( dx > 0 && !block.boundaryEast() ) ) {
       x += dx;
       block = flow.blocks()[(int)Math.floor(y)][(int)Math.floor(x)];
     }
     
-    if ( Math.floor(y+dy) == Math.floor(y) ||
+    if ( ignoreWalls ||
+         Math.floor(y+dy) == Math.floor(y) ||
          ( dy < 0 && !block.boundaryNorth() ) ||
          ( dy > 0 && !block.boundarySouth() ) ) {
       y += dy;

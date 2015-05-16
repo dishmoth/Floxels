@@ -95,6 +95,7 @@ public class BlastCursor extends Sprite {
                 y = (state.y - Env.gameOffsetY())/(float)Env.tileWidth();
     
     // left button: big blast, mini blast, or trigger a bouncer
+    /*
     if ( state.b1 ) {
       if ( mTriggerLeft ) {
         if ( triggerBouncers(x,y) ) {
@@ -127,9 +128,10 @@ public class BlastCursor extends Sprite {
       mTriggerLeft = true;
       Env.sounds().stopMiniBlastSound();
     }
-
+    */
+    
     // right button: summon the floxels
-    if ( state.b2 ) {
+    if ( state.b ) {
       boolean triggered = false;
       if ( mTriggerRight ) {
         mTriggerRight = false;
@@ -138,12 +140,12 @@ public class BlastCursor extends Sprite {
       if ( x > 0 && x < Env.numTilesX() && y > 0 && y < Env.numTilesY() ) {
         boolean makeSound = triggered;
         if ( mSummoner == null ) {
-          mSummoner = new Summoner(kSummonedFloxelType);
+//          mSummoner = new Summoner(kSummonedFloxelType);
           addTheseSprites.add(mSummoner);
           makeSound = true;
         }
         setSummonerPosition(x, y);
-        if ( triggered ) mSummoner.reset();
+//        if ( triggered ) mSummoner.reset();
         if ( makeSound ) Env.sounds().playSummonsSound();
       }
     } else {
@@ -314,7 +316,7 @@ public class BlastCursor extends Sprite {
     x = Math.max(kMarginEdge, Math.min(Env.numTilesX()-kMarginEdge, x));
     y = Math.max(kMarginEdge, Math.min(Env.numTilesY()-kMarginEdge, y));
     
-    mSummoner.setPosition(x, y);
+//    mSummoner.setPosition(x, y);
     
   } // setSummonerPosition()
   

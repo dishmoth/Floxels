@@ -99,6 +99,8 @@ public class LaunchCursor extends Sprite implements SourceTerm {
     mFloxelType = type;
     mFloxels = floxels;
     
+    Env.debug("launch num=" + mLaunchNum);
+    
   } // constructor
   
   // capture mouse state
@@ -131,7 +133,7 @@ public class LaunchCursor extends Sprite implements SourceTerm {
     }
     
     if ( mLaunchXPos < 0 && mLaunchYPos < 0 ) {
-      if ( state.b1 ) {
+      if ( state.b ) {
         if ( mTrigger ) {
           if ( mMouseXPos > 0 && mMouseYPos > 0 && mStartTime == 0 ) { 
             mLaunchXPos = mMouseXPos;
