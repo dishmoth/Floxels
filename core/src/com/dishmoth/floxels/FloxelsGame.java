@@ -37,6 +37,7 @@ public class FloxelsGame implements ApplicationListener {
 	  
     Env.initialize();
     //Env.spriteStore().prepare();
+    Env.sounds().initialize();
 
     int width = Gdx.graphics.getWidth();
     int height = Gdx.graphics.getHeight();

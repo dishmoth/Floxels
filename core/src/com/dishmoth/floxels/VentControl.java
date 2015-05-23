@@ -172,15 +172,6 @@ public class VentControl {
       }
     }
     
-    
-    //!!!
-    /*
-    if ( mFloxelType == 0 ) {
-      blocks[4][5].setBoundary(FlowBlock.kWest, -1.0f);
-      blocks[4][4].setBoundary(FlowBlock.kEast, +1.0f);
-    }
-    */
-    
   } // advance()
 
   // follow a cluster of enemy particles
@@ -219,8 +210,6 @@ public class VentControl {
         }
       }
     }
-    
-    //max = 0;//!!!
 
     final float delta = Env.TICK_TIME / kActivationTime;
     if ( max == 0) {

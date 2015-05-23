@@ -146,7 +146,7 @@ public class BlastCursor extends Sprite {
         }
         setSummonerPosition(x, y);
 //        if ( triggered ) mSummoner.reset();
-        if ( makeSound ) Env.sounds().playSummonsSound();
+//        if ( makeSound ) Env.sounds().playSummonsSound();
       }
     } else {
       mTriggerRight = true;
@@ -300,7 +300,7 @@ public class BlastCursor extends Sprite {
     for ( Sprite sp : mSpritesToWatch ) {
       Bouncer bouncer = (Bouncer)sp;
       if ( bouncer.hit(x, y) ) {
-        Env.sounds().playMegaBlastSound();
+//        Env.sounds().playMegaBlastSound();
         return true;
       }
     }

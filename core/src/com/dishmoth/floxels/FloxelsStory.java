@@ -176,7 +176,7 @@ public class FloxelsStory extends Story {
         assert( mCursor == null );
         //mCursor = new LaunchCursor(kMinorityPopulation, 
         //                           kMinorityType, mFloxels);
-        mCursor = new Cursor(mFloxels, kMinorityPopulation);
+        mCursor = new Cursor(kMinorityPopulation, kMinorityType, mFloxels);
         spriteManager.addSprite(mCursor);
         mRestartTimer = 0.0f;
       }
@@ -197,7 +197,7 @@ public class FloxelsStory extends Story {
       }
       if ( changed ) {
         if ( mChanging ) {
-          Env.sounds().playMorphSound();
+          Env.sounds().play(Sounds.MAZE_MORPH);
           mChanging = false;
         }
         //mBackground.updateImage();
@@ -211,7 +211,7 @@ public class FloxelsStory extends Story {
         mFloxels.releaseFloxels(0, mMajorityPopulation, 5.0f, 5.0f, 0.1f);
         mRestartTimer = kRestartDelay;
         mIntroTimer = 0.0f;
-        Env.sounds().playBigUnleashSound();
+        Env.sounds().play(Sounds.UNLEASH_BIG);
       }
     }
 
@@ -275,7 +275,7 @@ public class FloxelsStory extends Story {
     mFloxels.setHuntingStrength(kMajorityType, +fleeStrength);
 
     if ( minFrac > kFleeReverseSoundFrac && !mReversed ) {
-      Env.sounds().playReversalSound();
+      Env.sounds().play(Sounds.REVERSAL);
       mReversed = true;
     } else if ( minFrac < 0.75f*kFleeReverseSoundFrac ) {
       mReversed = false;
@@ -341,7 +341,7 @@ public class FloxelsStory extends Story {
       mNewBouncerTimer -= Env.TICK_TIME;
       if ( mNewBouncerTimer <= 0.0f ) {
         spriteManager.addSprite(new Bouncer(mMaze, mFloxels));
-        Env.sounds().playSpawnSound();
+//        Env.sounds().playSpawnSound();
         mNewBouncerTimer = 0.0f;
       }
       
@@ -499,7 +499,7 @@ public class FloxelsStory extends Story {
     mVentControls[kMajorityType].setHuntStrength(1.0f);
     mVentControls[kMinorityType].setHuntStrength(0.0f);
 
-    Env.sounds().playFailSound();
+    Env.sounds().play(Sounds.FAIL, 15);
     
   } // restartLevel()
 
@@ -510,7 +510,6 @@ public class FloxelsStory extends Story {
     setLevelDifficulty();
 
     assert( mFloxels.numFloxels(kMajorityType) == 0 ); 
-    assert( mCursor.numCaptured() == 0 );
     mScore.setCurrentValue( mFloxels.numFloxels(kMinorityType) );
     mScore.fixBaseValue();
 
@@ -538,7 +537,7 @@ public class FloxelsStory extends Story {
     //  mChangeTimer = kChangeFirstDelay;
     //}
 
-    Env.sounds().playSuccessSound();
+    Env.sounds().play(Sounds.SUCCESS, 15);
     
   } // newLevel() 
 

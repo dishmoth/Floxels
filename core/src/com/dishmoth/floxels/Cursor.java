@@ -19,9 +19,6 @@ public class Cursor extends Sprite implements SourceTerm {
   // how sprite is displayed relative to others
   static private final int kScreenLayer = 70; 
 
-  // the cursor acts on the minority population
-  private static final int kFloxelType = 1;
-  
   // how strongly floxels are pulled to the cursor position
   private static final float kAttractStrength = 50.0f;
   private static final float kAttractRange    = 0.4f;
@@ -55,6 +52,9 @@ public class Cursor extends Sprite implements SourceTerm {
   
   // reference to the floxels
   private Floxels mFloxels;
+  
+  // which population the cursor acts on
+  private int mFloxelType;
   
   // local floxel for painting
   private Floxel mPaintFloxel = null;
@@ -90,11 +90,12 @@ public class Cursor extends Sprite implements SourceTerm {
   private Texture mTexture = null;
   
   // constructor
-  public Cursor(Floxels floxels, int numCaptured) {
+  public Cursor(int numCaptured, int floxelType, Floxels floxels) {
     
     super(kScreenLayer);
 
     mFloxels = floxels;
+    mFloxelType = floxelType;
     
     mXPos = mYPos = -1;
     
@@ -110,7 +111,7 @@ public class Cursor extends Sprite implements SourceTerm {
     
     mPaintFloxel = new Floxel();
     mPaintFloxel.mState = Floxel.State.NORMAL;
-    mPaintFloxel.mType = (byte)kFloxelType;
+    mPaintFloxel.mType = (byte)mFloxelType;
 
     mFinalFace = (byte)Env.randomInt( Floxel.NUM_EXPRESSIONS );
     mFinalShade = (byte)Env.randomInt( Floxel.NUM_SHADES );
@@ -124,7 +125,7 @@ public class Cursor extends Sprite implements SourceTerm {
   public void cancel() { 
   
     if ( mNumCaptured > 0 ) {
-      mFloxels.releaseFloxels(kFloxelType, mNumCaptured, 
+      mFloxels.releaseFloxels(mFloxelType, mNumCaptured, 
                               mXPos, mYPos, floxelRadius());
       mNumCaptured = 0;
     }
@@ -161,7 +162,7 @@ public class Cursor extends Sprite implements SourceTerm {
 
     if ( mState == State.LAUNCHING ) {
       if ( mNumCaptured > 0 ) {
-        mFloxels.releaseFloxels(kFloxelType, mNumCaptured, 
+        mFloxels.releaseFloxels(mFloxelType, mNumCaptured, 
                                 mXPos, mYPos, floxelRadius());
         mNumCaptured = 0;
       }
@@ -182,9 +183,11 @@ public class Cursor extends Sprite implements SourceTerm {
     
     if ( state.b ) {
       mState = State.CAPTURING;
-      mNumCaptured += mFloxels.captureFloxels(mXPos, mYPos, 
-                                              kPullRadius, kCaptureRadius,
-                                              kFloxelType);
+      int num = mFloxels.captureFloxels(mXPos, mYPos, 
+                                        kPullRadius, kCaptureRadius,
+                                        mFloxelType);
+      mNumCaptured += num;
+      if ( num > 0 ) Env.sounds().playCaptureSound(num);
       if ( mFocus < 1.0f ) mFocus = Math.min(1.0f, mFocus+dt*kFocusRate);
     } else {
       if ( mState == State.CAPTURING ) {
@@ -216,7 +219,7 @@ public class Cursor extends Sprite implements SourceTerm {
   public void addToSource(int floxelType, float[][] source, int refineFactor) {
 
     float strength = 0.0f;
-    if ( floxelType == kFloxelType ) {
+    if ( floxelType == mFloxelType ) {
       if ( mState == State.CAPTURING ) {
         strength = -kAttractStrength;
       }

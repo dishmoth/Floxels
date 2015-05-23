@@ -38,7 +38,6 @@ public class Env {
   // assorted helper objects
   static private Random       kRandom;
   static private MouseMonitor kMouseMonitor;
-  static private Resources    kResources;
   static private Sounds       kSounds;
   
   // this sets up a global Env for the applet
@@ -46,7 +45,6 @@ public class Env {
   
     kRandom       = new Random();
     kMouseMonitor = new MouseMonitor();
-    kResources    = new Resources();
     kSounds       = new Sounds();
 
   } // initialize()
@@ -86,9 +84,6 @@ public class Env {
   
   // return reference to mouse monitor
   static public MouseMonitor mouse() { return kMouseMonitor; }
-  
-  // return reference to game resources
-  static public Resources resources() { return kResources; }
   
   // return reference to game audio
   static public Sounds sounds() { return kSounds; }

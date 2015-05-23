@@ -126,7 +126,7 @@ public class LaunchCursor extends Sprite implements SourceTerm {
 
     if ( mStartTime == kSecondsTillStart && 
          mMouseXPos >= 0 && mMouseYPos >= 0 ) {
-      Env.sounds().playSpawnSound();
+//      Env.sounds().playSpawnSound();
     }
     if ( mStartTime > 0.0f ) {
       mStartTime = Math.max(0.0f, mStartTime-Env.TICK_TIME);
@@ -138,7 +138,7 @@ public class LaunchCursor extends Sprite implements SourceTerm {
           if ( mMouseXPos > 0 && mMouseYPos > 0 && mStartTime == 0 ) { 
             mLaunchXPos = mMouseXPos;
             mLaunchYPos = mMouseYPos;
-            Env.sounds().playUnleashSound();
+//            Env.sounds().playUnleashSound();
           }
           mTrigger = false;
         }

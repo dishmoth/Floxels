@@ -6,10 +6,44 @@
 
 package com.dishmoth.floxels;
 
-import java.io.IOException;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
+
+import java.util.Iterator;
+import java.util.LinkedList;
 
 // class for controlling audio
 public class Sounds {
+
+  // identifiers for the different effects
+  public static final int  GRUNT_0     =  0,
+                           GRUNT_1     =  1,
+                           GRUNT_2     =  2,
+                           GRUNT_3     =  3,
+                           GRUNT_4     =  4,
+                           GRUNT_5     =  5,
+                           GRUNT_6     =  6,
+                           GRUNT_7     =  7,
+                           GRUNT_8     =  8,
+                           GRUNT_9     =  9,
+                           SQUEAK_0    = 10,
+                           SQUEAK_1    = 11,
+                           SQUEAK_2    = 12,
+                           SQUEAK_3    = 13,
+                           SQUEAK_4    = 14,
+                           SQUEAK_5    = 15,
+                           SQUEAK_6    = 16,
+                           SQUEAK_7    = 17,
+                           SQUEAK_8    = 18,
+                           SQUEAK_9    = 19,
+                           SUCCESS     = 20,
+                           FAIL        = 21,
+                           UNLEASH     = 22,
+                           UNLEASH_BIG = 23,
+                           REVERSAL    = 24,
+                           MAZE_MORPH  = 25;
+  private static final int kNumSounds  = 26; 
   
   // true if sounds have been loaded and all is operational
   private boolean mAvailable;
@@ -17,64 +51,37 @@ public class Sounds {
   // true if audio has been turned off by the user
   private boolean mMuted;
 
-  // sounds for floxels dying
-  private static final int kNumFloxelTypes   = 2,
-                           kNumDeathSounds   = 10,
-                           kDeathTicksMin    = 2,
-                           kDeathTicksMax    = 3;
-  private SoundEffect      mDeathSounds[][]  = null;
-  private int              mDeathNextIndex[] = null,
-                           mDeathCount[]     = null;
-  private int              mDeathDelay;
+  // the sound clips (Sound for effects, Music for loops)
+  private Sound mSounds[];
+  private Music mLoops[];
   
-  // sound for firing a blast
-  private static final int kNumBlastSounds = 3;
-  private SoundEffect      mBlastSounds[]  = null;
-  private int              mBlastCount;
-  
-  // sound for firing a mega-blast
-  private SoundEffect mMegaBlastSound = null;
-  
-  // sound for firing a mini-blast
-  private SoundEffect mMiniBlastSound = null;
+  // queued sound effects [delay,id]
+  private LinkedList<int[]> mDelayedSounds;
 
-  // sound for a bubble appearing
-  private SoundEffect mSpawnSound = null;
-  
-  // sound for summoning floxels
-  private SoundEffect mSummonsSound = null;
-  
-  // sound for the player losing
-  private static final int kFailSoundDelay = 15;
-  private int              mFailSoundTimer;
-  private SoundEffect      mFailSound = null;
-  
-  // sound for the player winning
-  private static final int kSuccessSoundDelay = 15;
-  private int              mSuccessSoundTimer;
-  private SoundEffect      mSuccessSound = null;
-  
-  // sound for floxels being released 
-  private SoundEffect mUnleashSound = null;
-  
-  // sound for lots of floxels being released 
-  private SoundEffect mBigUnleashSound = null;
-  
-  // sound for minority going on the offensive 
-  private SoundEffect mReversalSound = null;
-  
-  // sound for the maze changing 
-  private SoundEffect mMorphSound = null;
-  
-  // silence (for testing sound system)
-  private SoundEffect mTestSound = null;
-  
+  // special logic for choosing which of the floxel death sounds to play
+  private static final int kNumDeathSounds   = 10;
+  private static final int kDeathTicksMin    = 1,
+                           kDeathTicksMax    = 3;
+  private int              mDeathNextIndex[] = new int[]{0,0},
+                           mDeathCount[]     = new int[]{0,0},
+                           mDeathDelay       = 0;
+  private static final int kCaptureTicksMin  = 0,
+                           kCaptureTicksMax  = 2;
+  private int              mCaptureNextIndex = 0,
+                           mCaptureCount     = 0,
+                           mCaptureDelay     = 0;
+    
   // constructor
   public Sounds() {
     
     mAvailable = false;
-    mMuted     = false;
+    mMuted = false;
 
+    mSounds = new Sound[kNumSounds];
+    mLoops  = new Music[kNumSounds];
+    
+    mDelayedSounds = new LinkedList<int[]>();
+    
   } // constructor
   
   // mute or unmute the sound
@@ -86,101 +93,165 @@ public class Sounds {
   public void initialize() {
 
     if ( mAvailable ) return;
+
+    Env.debug("Loading sound files");
+    
+    loadSound(SUCCESS, "success.ogg");
+    loadSound(FAIL, "fail.ogg");
+    loadSound(UNLEASH, "unleash.ogg");
+    loadSound(UNLEASH_BIG, "unleash_big.ogg");
+    loadSound(REVERSAL, "reversal.ogg");
+    loadSound(MAZE_MORPH, "morph.ogg");
+
+    for ( int k = 0 ; k < kNumDeathSounds ; k++ ) {
+      loadSound(GRUNT_0+k, "grunt"+k+".ogg");
+      loadSound(SQUEAK_0+k, "squeak"+k+".ogg");
+    }
+
+    checkSounds();
+    if ( mAvailable ) Env.debug("Sounds loaded successfully");
+    else              Env.debug("Sound disabled; effects failed to load");
+    
+
+  } // initialize()
+    
+  // identify which sounds must be looped
+  private boolean isLooped(int id) {
+    
+    return false;
+    
+  } // isLooped()
+  
+  // treat the sound effect as a Music object 
+  private boolean playAsMusic(int id) {
+    
+    return false;
+    
+  } // playAsMusic()
+  
+  // prepare a sound resource
+  private void loadSound(int id, String fileName) {
+    
+    assert( id >= 0 && id < kNumSounds );
+    assert( fileName != null );
     
     try {
 
-      mDeathSounds = new SoundEffect[kNumFloxelTypes][kNumDeathSounds];
-      for ( int type = 0 ; type < kNumFloxelTypes ; type++ ) {
-        String name = ( type == 0 ? "grunt" : "squeak" );
-        for ( int k = 0 ; k < kNumDeathSounds ; k++ ) {
-          mDeathSounds[type][k] = Env.resources().loadSoundEffect(
-                                                        name + k + ".ogg");
-        }
+      if ( isLooped(id) ) {
+        if ( mLoops[id] != null ) return; // already loaded
+        mLoops[id] = Gdx.audio.newMusic(Gdx.files.internal(fileName));
+        mLoops[id].setLooping(true);
+      } else if ( playAsMusic(id) ) {
+        if ( mLoops[id] != null ) return; // already loaded
+        mLoops[id] = Gdx.audio.newMusic(Gdx.files.internal(fileName));
+        mLoops[id].setLooping(false);
+      } else {
+        if ( mSounds[id] != null ) return; // already loaded
+        mSounds[id] = Gdx.audio.newSound(Gdx.files.internal(fileName));
       }
-      mDeathCount = new int[kNumFloxelTypes];
-      mDeathNextIndex = new int[kNumFloxelTypes];
-      mDeathDelay = 0;
       
-      mBlastSounds = new SoundEffect[kNumBlastSounds];
-      for ( int k = 0 ; k < kNumBlastSounds ; k++ ) {
-        mBlastSounds[k] = Env.resources().loadSoundEffect("blast.ogg");
+    } catch (Exception ex) {
+      Env.debug(ex.getMessage());
+      mSounds[id] = null;
+      mLoops[id] = null;
+    }
+
+  } // loadSound()
+
+  // check that all sounds have loaded
+  private void checkSounds() {
+
+    mAvailable = true;
+    
+    for ( int id = 0 ; id < kNumSounds ; id++ ) {
+      if ( mSounds[id] == null && mLoops[id] == null ) {
+        mAvailable = false;
+        return;
       }
-      mBlastCount = 0;
-      
-      mMegaBlastSound = Env.resources().loadSoundEffect("megablast.ogg");
-      
-      mMiniBlastSound = Env.resources().loadSoundEffect("miniblast.ogg");
-      mMiniBlastSound.setLooped(true);
-      
-      mSpawnSound = Env.resources().loadSoundEffect("spawn.ogg");
-
-      mSummonsSound = Env.resources().loadSoundEffect("summons.ogg");
-
-      mFailSound = Env.resources().loadSoundEffect("fail.ogg");
-      mFailSoundTimer = 0;
-      
-      mSuccessSound = Env.resources().loadSoundEffect("success.ogg");
-      mSuccessSoundTimer = 0;
-      
-      mUnleashSound = Env.resources().loadSoundEffect("unleash.ogg");
-
-      mBigUnleashSound = Env.resources().loadSoundEffect("unleash_big.ogg");
-
-      mReversalSound = Env.resources().loadSoundEffect("reversal.ogg");
-      
-      mMorphSound = Env.resources().loadSoundEffect("morph.ogg");
-      
-      mTestSound = Env.resources().loadSoundEffect("silence.ogg");
-      
-      mAvailable = true;
-      
-      mTestSound.play(); // wake up the sound code
-      
-    } catch ( IOException ex ) {
-      
-      if ( Env.debugMode() ) System.out.println(ex.getMessage());
-      mDeathSounds     = null;
-      mBlastSounds     = null;
-      mMegaBlastSound  = null;
-      mMiniBlastSound  = null;
-      mSpawnSound      = null;
-      mSummonsSound    = null;
-      mFailSound       = null;
-      mSuccessSound    = null;
-      mUnleashSound    = null;
-      mBigUnleashSound = null;
-      mReversalSound   = null;
-      mMorphSound      = null;
-      mTestSound       = null;
-      
     }
     
-  } // initialize()
+  } // checkSound()
 
-  // stop all looping sounds
-  public void stop() {
-    
-    stopMiniBlastSound();
-    
-  } // stop()
-  
-  // note that a frame has passed
+  // note that a frame has passed (and play delayed sounds)
   public void advance() {
     
-    if ( !mAvailable || mMuted ) return;    
-
-    // play delayed sounds
-    
-    if ( mFailSoundTimer > 0 ) {
-      if ( --mFailSoundTimer == 0 ) mFailSound.play();
+    for ( Iterator<int[]> it = mDelayedSounds.iterator() ; it.hasNext() ; ) {
+      int details[] = it.next();
+      assert( details != null && details.length == 2 );
+      assert( details[0] > 0 );
+      details[0] -= 1;
+      if ( details[0] == 0 ) {
+        play(details[1]);
+        it.remove();
+      }
     }
+    
+    advanceSpecial();
+    
+  } // advance()
+  
+  // play a sound effect
+  public void play(int id) {
+    
+    if ( !mAvailable || mMuted ) return;
+    
+    assert( id >= 0 && id < kNumSounds );
+    assert( !isLooped(id) );
 
-    if ( mSuccessSoundTimer > 0 ) {
-      if ( --mSuccessSoundTimer == 0 ) mSuccessSound.play();
+    if      ( mSounds[id] != null ) mSounds[id].play();
+    else if ( mLoops[id]  != null ) mLoops[id].play();
+    
+  } // play()
+  
+  // play a sound effect after a delay 
+  public void play(int id, int delay) {
+    
+    assert( id >= 0 && id < kNumSounds );
+    assert( delay >= 0 );
+    if ( delay == 0 ) {
+      play(id);
+    } else {
+      mDelayedSounds.add(new int[]{ delay, id });
     }
     
-    // choose a death sound to play
+  } // play(delay)
+  
+  // start a sound looping (if it isn't already)
+  public void loop(int id) {
     
+    if ( !mAvailable || mMuted ) return;
+    
+    assert( id >= 0 && id < kNumSounds );
+    assert( isLooped(id) );
+    
+    if ( !mLoops[id].isPlaying() ) mLoops[id].play();
+    
+  } // loop()
+  
+  // stop a looping sound
+  public void stop(int id) {
+
+    if ( !mAvailable || mMuted ) return;
+    
+    assert( id >= 0 && id < kNumSounds );
+    assert( isLooped(id) );
+    
+    if ( mLoops[id].isPlaying() ) mLoops[id].stop();
+    
+  } // stop()
+
+  // stop all looping sounds
+  public void stopAll() {
+
+    for ( int id = 0 ; id < kNumSounds ; id++ ) {
+      if ( isLooped(id) ) stop(id);
+    }
+    
+  } // stopAll()
+
+  // update counters for death and capture sounds
+  private void advanceSpecial() {
+        
     if ( mDeathDelay > 0 ) {
       mDeathDelay -= 1;
     } else if ( mDeathCount[0] > 0 || mDeathCount[1] > 0 ) {
@@ -188,123 +259,47 @@ public class Sounds {
   
       final int type  = ( (mDeathCount[0] > mDeathCount[1]) ? 0 : 1 ),
                 index = mDeathNextIndex[type];
-      mDeathSounds[type][index].play();
+      final int id = ( type==0 ? GRUNT_0 : SQUEAK_0 ) + index;
+      play(id);
       
       mDeathNextIndex[type] = (index + Env.randomInt(1,2)) % kNumDeathSounds;
       mDeathCount[0] = mDeathCount[1] = 0;
     }
     
-  } // advance()
-
-  // start a sound appropriate to the recent casualty counts
+    if ( mCaptureDelay > 0 ) {
+      mCaptureDelay -= 1;
+    } else if ( mCaptureCount > 0 ){
+      mCaptureDelay = Env.randomInt(kCaptureTicksMin, kCaptureTicksMax);
+      
+      final int id = SQUEAK_0 + mCaptureNextIndex;
+      play(id);
+      
+      mCaptureNextIndex = (mCaptureNextIndex + Env.randomInt(1,2)) % kNumDeathSounds;
+      mCaptureCount = 0;
+    }
+    
+  } // advanceSpecial()
+  
+  // play sounds for dead floxels based on which are dying most
   public void playDeathSounds(int killCount[]) {
     
     if ( !mAvailable || mMuted ) return;
 
-    assert( killCount.length == kNumFloxelTypes );
-    
-    for ( int k = 0 ; k < kNumFloxelTypes ; k++ ) {
+    assert( killCount.length == 2 );
+    for ( int k = 0 ; k < 2 ; k++ ) {
       mDeathCount[k] += killCount[k];
     }
     
   } // playDeathSounds()
-  
-  // start a sound playing when the player fires a blast
-  public void playBlastSound() {
+
+  // play sounds for captured floxels
+  public void playCaptureSound(int count) {
     
     if ( !mAvailable || mMuted ) return;
-    
-    mBlastSounds[mBlastCount].play();
-    mBlastCount = (mBlastCount + 1) % kNumBlastSounds;
-    
-  } // playBlastSound()
 
-  // start a sound playing when the player fires a mega-blast
-  public void playMegaBlastSound() {
+    assert( count > 0 );
+    mCaptureCount += count;
     
-    if ( !mAvailable || mMuted ) return;
-    
-    mMegaBlastSound.play();
-    
-  } // playMegaBlastSound()
-
-  // start a sound playing (looping) when the player fires a mini-blast
-  public void playMiniBlastSound() {
-    
-    if ( !mAvailable || mMuted ) return;    
-    mMiniBlastSound.play();
-    
-  } // playMiniBlastSound()
-  
-  // stop the sound playing for the mini-blast
-  public void stopMiniBlastSound() {
-    
-    if ( mMiniBlastSound != null ) mMiniBlastSound.stop();
-    
-  } // stopMiniBlastSound()
-  
-  // start a sound playing when a bubble appears
-  public void playSpawnSound() {
-    
-    if ( !mAvailable || mMuted ) return;    
-    mSpawnSound.play();
-    
-  } // playSpawnSound()
-  
-  // start a sound playing when floxels are summoned
-  public void playSummonsSound() {
-    
-    if ( !mAvailable || mMuted ) return;    
-    mSummonsSound.play();
-    
-  } // playSummonsSound()
-  
-  // start a sound playing when the player loses
-  public void playFailSound() {
-    
-    if ( !mAvailable || mMuted ) return;    
-    mFailSoundTimer = kFailSoundDelay;
-    
-  } // playFailSound()
-  
-  // start a sound playing when the player wins
-  public void playSuccessSound() {
-    
-    if ( !mAvailable || mMuted ) return;    
-    mSuccessSoundTimer = kSuccessSoundDelay;
-    
-  } // playSuccessSound()
-  
-  // start a sound playing when floxels are released
-  public void playUnleashSound() {
-    
-    if ( !mAvailable || mMuted ) return;    
-    mUnleashSound.play();
-    
-  } // playUnleashSound()
-  
-  // start a sound playing when lots of floxels are released
-  public void playBigUnleashSound() {
-    
-    if ( !mAvailable || mMuted ) return;    
-    mBigUnleashSound.play();
-    
-  } // playBigUnleashSound()
-  
-  // start a sound playing when the minority goes on the offensive
-  public void playReversalSound() {
-    
-    if ( !mAvailable || mMuted ) return;    
-    mReversalSound.play();
-    
-  } // playReversalSound()
-  
-  // start a sound playing when the maze changes
-  public void playMorphSound() {
-    
-    if ( !mAvailable || mMuted ) return;    
-    mMorphSound.play();
-    
-  } // playMorphSound()
+  } // playCaptureSound()
   
 } // class Sounds
