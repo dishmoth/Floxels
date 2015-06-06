@@ -37,13 +37,19 @@ public class Sounds {
                            SQUEAK_7    = 17,
                            SQUEAK_8    = 18,
                            SQUEAK_9    = 19,
-                           SUCCESS     = 20,
-                           FAIL        = 21,
-                           UNLEASH     = 22,
-                           UNLEASH_BIG = 23,
-                           REVERSAL    = 24,
-                           MAZE_MORPH  = 25;
-  private static final int kNumSounds  = 26; 
+                           POP_0       = 20,
+                           POP_1       = 21,
+                           POP_2       = 22,
+                           POP_3       = 23,
+                           POP_4       = 24,
+                           POP_5       = 25,
+                           SUCCESS     = 26,
+                           FAIL        = 27,
+                           UNLEASH     = 28,
+                           UNLEASH_BIG = 29,
+                           REVERSAL    = 30,
+                           MAZE_MORPH  = 31;
+  private static final int kNumSounds  = 32; 
   
   // true if sounds have been loaded and all is operational
   private boolean mAvailable;
@@ -65,6 +71,7 @@ public class Sounds {
   private int              mDeathNextIndex[] = new int[]{0,0},
                            mDeathCount[]     = new int[]{0,0},
                            mDeathDelay       = 0;
+  private static final int kNumCaptureSounds = 6;
   private static final int kCaptureTicksMin  = 0,
                            kCaptureTicksMax  = 2;
   private int              mCaptureNextIndex = 0,
@@ -106,6 +113,10 @@ public class Sounds {
     for ( int k = 0 ; k < kNumDeathSounds ; k++ ) {
       loadSound(GRUNT_0+k, "grunt"+k+".ogg");
       loadSound(SQUEAK_0+k, "squeak"+k+".ogg");
+    }
+
+    for ( int k = 0 ; k < kNumCaptureSounds ; k++ ) {
+      loadSound(POP_0+k, "pop"+k+".wav");
     }
 
     checkSounds();
@@ -271,10 +282,11 @@ public class Sounds {
     } else if ( mCaptureCount > 0 ){
       mCaptureDelay = Env.randomInt(kCaptureTicksMin, kCaptureTicksMax);
       
-      final int id = SQUEAK_0 + mCaptureNextIndex;
+      final int id = POP_0 + mCaptureNextIndex;
       play(id);
       
-      mCaptureNextIndex = (mCaptureNextIndex + Env.randomInt(1,2)) % kNumDeathSounds;
+      mCaptureNextIndex = (mCaptureNextIndex + Env.randomInt(1,2)) 
+                          % kNumCaptureSounds;
       mCaptureCount = 0;
     }
     
