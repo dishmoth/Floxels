@@ -21,15 +21,16 @@ public class Maze {
   } // class Maze.Delta
   
   // size of the maze
-  final private int mNumTilesX,
-                    mNumTilesY;
+  private int mNumTilesX,
+              mNumTilesY;
   
   // where the walls are
-  final private boolean mHorizWalls[][],
-                        mVertWalls[][]; 
+  private boolean mHorizWalls[][],
+                  mVertWalls[][]; 
   
   // constructor
-  public Maze(String data[]) {
+  public Maze(String data[], 
+              boolean flipXY, boolean flipVert, boolean flipHoriz) {
 
     assert( data != null );
     assert( data[0] != null );
@@ -57,6 +58,59 @@ public class Maze {
         char ch = data[iy+1].charAt(2*ix);
         assert( ch == ' ' || ch == 'I' );
         mVertWalls[iy][ix] = (ch == 'I');
+      }
+    }
+    
+    if ( flipXY ) {
+      int swap = mNumTilesX;
+      mNumTilesX = mNumTilesY;
+      mNumTilesY = swap;
+      
+      boolean oldHorizWalls[][] = mHorizWalls;
+      boolean oldVertWalls[][] = mVertWalls;
+      
+      mHorizWalls = new boolean[mNumTilesY+1][mNumTilesX];
+      for ( int iy = 0 ; iy < mNumTilesY+1 ; iy++ ) {
+        for ( int ix = 0 ; ix < mNumTilesX ; ix++ ) {
+          mHorizWalls[iy][ix] = oldVertWalls[ix][iy];
+        }
+      }
+      
+      mVertWalls = new boolean[mNumTilesY][mNumTilesX+1];
+      for ( int iy = 0 ; iy < mNumTilesY ; iy++ ) {
+        for ( int ix = 0 ; ix < mNumTilesX+1 ; ix++ ) {
+          mVertWalls[iy][ix] = oldHorizWalls[ix][iy];
+        }
+      }
+    }
+
+    if ( flipVert ) {
+      for ( int iy = 0 ; iy < (mNumTilesY+1)/2 ; iy++ ) {
+        boolean swap[] = mHorizWalls[iy];
+        mHorizWalls[iy] = mHorizWalls[mNumTilesY-iy];
+        mHorizWalls[mNumTilesY-iy] = swap;
+      }
+      for ( int iy = 0 ; iy < mNumTilesY/2 ; iy++ ) {
+        boolean swap[] = mVertWalls[iy];
+        mVertWalls[iy] = mVertWalls[mNumTilesY-1-iy];
+        mVertWalls[mNumTilesY-1-iy] = swap;
+      }
+    }
+    
+    if ( flipHoriz ) {
+      for ( int iy = 0 ; iy < mNumTilesY+1 ; iy++ ) {
+        for ( int ix = 0 ; ix < mNumTilesX/2 ; ix++ ) {
+          boolean swap = mHorizWalls[iy][ix];
+          mHorizWalls[iy][ix] = mHorizWalls[iy][mNumTilesX-1-ix];
+          mHorizWalls[iy][mNumTilesX-1-ix] = swap;
+        }
+      }
+      for ( int iy = 0 ; iy < mNumTilesY ; iy++ ) {
+        for ( int ix = 0 ; ix < (mNumTilesX+1)/2 ; ix++ ) {
+          boolean swap = mVertWalls[iy][ix];
+          mVertWalls[iy][ix] = mVertWalls[iy][mNumTilesX-ix];
+          mVertWalls[iy][mNumTilesX-ix] = swap;
+        }
       }
     }
     

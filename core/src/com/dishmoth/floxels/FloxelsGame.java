@@ -49,8 +49,7 @@ public class FloxelsGame implements ApplicationListener {
     mSpriteBatch = new SpriteBatch();
     mSpriteBatch.setProjectionMatrix(mCamera.combined);
 
-    int tile = Math.min(width/Env.numTilesX(), height/Env.numTilesY());
-    Env.setTileWidth(tile);
+    chooseTileDimensions(width, height);
     
     mGameManager = new GameManager(new FloxelsStory());
 
@@ -60,6 +59,35 @@ public class FloxelsGame implements ApplicationListener {
     
 	} // ApplicationListener.create()
 
+	// decide the number of tiles and the tile size
+	private void chooseTileDimensions(int width, int height) {
+	  
+    float aspect = Math.max(width,height)/(float)Math.min(width,height);
+
+    int nx, ny;
+    if ( aspect < 0.5*( 10.0/10 + 11.0/9 ) ) {
+      nx = 10;
+      ny = 10;
+    } else if ( aspect < 0.5*( 11.0/9 + 12.0/8 ) ) {
+      nx = 11;
+      ny = 9;
+    } else {
+      nx = 12;
+      ny = 8;
+    }
+    if ( width < height ) {
+      int swap = nx;
+      nx = ny;
+      ny = swap;
+    }
+    
+    Env.setTilesXY(nx, ny);
+    
+    int tile = Math.min(width/Env.numTilesX(), height/Env.numTilesY());
+    Env.setTileWidth(tile);
+    
+	} // chooseTileDimensions()
+	
   // Called when the application is resized. This can happen at any point
   // during a non-paused state but will never happen before a call to create().
   public void resize(int width, int height) {

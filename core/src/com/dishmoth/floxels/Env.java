@@ -22,8 +22,8 @@ public class Env {
   static private int kTileWidth = 58;
   
   // number of tiles in the game area
-  static private final int kNumTilesX = 10,
-                           kNumTilesY = 10;
+  static private int kNumTilesX = 0,
+                     kNumTilesY = 0;
   
   // frame rate
   static public final int   TICKS_PER_SEC = 30;
@@ -66,14 +66,15 @@ public class Env {
     
   } // debug()
   
+  // return the size of the game area in tiles
+  static public void setTilesXY(int x, int y) { kNumTilesX=x; kNumTilesY=y; }
+  static public int numTilesX() { return kNumTilesX; }
+  static public int numTilesY() { return kNumTilesY; }
+  
   // return the dimensions of a tile
   static public void setTileWidth(int w) { kTileWidth = w; }
   static public int tileWidth() { return kTileWidth; }
 
-  // return the size of the game area in tiles
-  static public int numTilesX() { return kNumTilesX; }
-  static public int numTilesY() { return kNumTilesY; }
-  
   // return the size of the game area in pixels
   static public int gameWidth()  { return kTileWidth*kNumTilesX; }
   static public int gameHeight() { return kTileWidth*kNumTilesY; }
