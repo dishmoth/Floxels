@@ -64,9 +64,9 @@ public class Perlin3D {
   // evaluate the noise value at a three-dimensional position 
   public float value(float x, float y, float z) {
     
-    final int ix = (int)Math.floor(x),
-              iy = (int)Math.floor(y),
-              iz = (int)Math.floor(z);
+    final int ix = (x >= 0) ? (int)x : (int)Math.floor(x),
+              iy = (y >= 0) ? (int)y : (int)Math.floor(y),
+              iz = (z >= 0) ? (int)z : (int)Math.floor(z);
     
     final float fx = x - ix,
                 fy = y - iy,

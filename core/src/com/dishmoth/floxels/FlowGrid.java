@@ -204,16 +204,16 @@ public class FlowGrid {
           for ( int iy = iy0 ; iy <= iy1 ; iy++ ) {
             for ( int ix = ix0 + ((stagger+iy)%2) ; ix <= ix1 ; ix+=2 ) {
               final float phi0 = mData[iy][ix];
-              final float phiN = ( block.boundaryNorth() && iy==iy0 ) 
+              final float phiN = ( iy==iy0 && block.boundaryNorth() ) 
                                  ? ( phi0 - delta*block.inFlowNorth() )
                                  : mData[iy-1][ix];
-              final float phiS = ( block.boundarySouth() && iy==iy1 ) 
+              final float phiS = ( iy==iy1 && block.boundarySouth() ) 
                                  ? ( phi0 - delta*block.inFlowSouth() )
                                  : mData[iy+1][ix];
-              final float phiE = ( block.boundaryEast() && ix==ix1 ) 
+              final float phiE = ( ix==ix1 && block.boundaryEast() ) 
                                  ? ( phi0 - delta*block.inFlowEast() )
                                  : mData[iy][ix+1];
-              final float phiW = ( block.boundaryWest() && ix==ix0 ) 
+              final float phiW = ( ix==ix0 && block.boundaryWest() ) 
                                  ? ( phi0 - delta*block.inFlowWest() )
                                  : mData[iy][ix-1];
               mData[iy][ix] = 0.25f*( phiN + phiS + phiE + phiW )

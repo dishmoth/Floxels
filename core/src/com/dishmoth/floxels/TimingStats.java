@@ -6,9 +6,15 @@
 
 package com.dishmoth.floxels;
 
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+
 // collect timing statistics as the game is running
 class TimingStats {
 
+  // show frame rate on screen
+  private static final boolean kOnscreenReport = true;
+  
   // time between reports
   private static final float kReportSeconds = 3.0f;
   
@@ -17,11 +23,22 @@ class TimingStats {
   private float mTotalSeconds,
                 mMinSeconds,
                 mMaxSeconds;
+
+  // value (average frames-per-second) to show on screen
+  private float mOnscreenValue;
+  
+  // font for on-screen frame rate
+  private BitmapFont mFont = null;
   
   // constructor
   public TimingStats() { 
 
     clear(); 
+    
+    if ( kOnscreenReport ) {
+      mFont = new BitmapFont();
+      mOnscreenValue = 0.0f;
+    }
   
   } // constructor
   
@@ -56,9 +73,21 @@ class TimingStats {
                + "ms, max="
                + String.format("%.1f", 1000*mMaxSeconds)
                + "ms)" );
+      mOnscreenValue = mNumUpdates/mTotalSeconds;
       clear();
     }
     
   } // update()
+
+  // show the frame rate on screen
+  public void display(SpriteBatch batch) {
+    
+    if ( !kOnscreenReport ) return;
+    
+    mFont.draw(batch, 
+               "fps: " + String.format("%.1f", mOnscreenValue), 
+               Env.gameOffsetX()+5, Env.gameOffsetY()+20);
+
+  } // display
   
 } // class TimingStats

@@ -86,8 +86,8 @@ public class Flow {
     assert( x > 0.0f && x < mBaseXSize );
     assert( y > 0.0f && y < mBaseYSize );
 
-    final int ix = (int)Math.floor(x*mRefineFactor),
-              iy = (int)Math.floor(y*mRefineFactor);
+    final int ix = (int)(x*mRefineFactor),
+              iy = (int)(y*mRefineFactor);
     
     final int kx = ( ix >> mRefineLevel ),
               ky = ( iy >> mRefineLevel );

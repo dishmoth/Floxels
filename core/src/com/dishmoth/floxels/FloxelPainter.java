@@ -233,8 +233,8 @@ public class FloxelPainter {
     final float xScale = Env.gameWidth() / (float)Env.numTilesX(),
                 yScale = Env.gameHeight() / (float)Env.numTilesY();
 
-    int x = (int)Math.floor( floxel.mX * xScale ) + Env.gameOffsetX(),
-        y = (int)Math.floor( floxel.mY * yScale ) + Env.gameOffsetY();
+    int x = (int)(floxel.mX * xScale) + Env.gameOffsetX(),
+        y = (int)(floxel.mY * yScale) + Env.gameOffsetY();
       
     if ( floxel.mFace < Floxel.NUM_NORMAL_FACES ) {
       

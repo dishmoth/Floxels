@@ -153,6 +153,7 @@ public class FloxelsGame implements ApplicationListener {
     
     mSpriteBatch.begin();
     mGameManager.draw(mSpriteBatch);
+    mTimingStats.display(mSpriteBatch);
     mSpriteBatch.end();
     
   } // draw()

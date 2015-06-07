@@ -486,18 +486,18 @@ public class Floxels extends Sprite {
     
     float x = floxel.mX,
           y = floxel.mY;
-    FlowBlock block = flow.blocks()[(int)Math.floor(y)][(int)Math.floor(x)];
+    FlowBlock block = flow.blocks()[(int)y][(int)x];
 
     if ( ignoreWalls || 
-         Math.floor(x+dx) == Math.floor(x) ||
+         ((int)(x+dx+1)-1) == (int)x ||
          ( dx < 0 && !block.boundaryWest() ) ||
          ( dx > 0 && !block.boundaryEast() ) ) {
       x += dx;
-      block = flow.blocks()[(int)Math.floor(y)][(int)Math.floor(x)];
+      block = flow.blocks()[(int)y][(int)x];
     }
     
     if ( ignoreWalls ||
-         Math.floor(y+dy) == Math.floor(y) ||
+         ((int)(y+dy+1)-1) == (int)y ||
          ( dy < 0 && !block.boundaryNorth() ) ||
          ( dy > 0 && !block.boundarySouth() ) ) {
       y += dy;
@@ -525,8 +525,8 @@ public class Floxels extends Sprite {
     
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState != Floxel.State.NORMAL ) continue;
-      final int kx = (int)Math.floor(floxel.mX*kKillGridSubdivide + offsetX),
-                ky = (int)Math.floor(floxel.mY*kKillGridSubdivide + offsetY);
+      final int kx = (int)(floxel.mX*kKillGridSubdivide + offsetX),
+                ky = (int)(floxel.mY*kKillGridSubdivide + offsetY);
       final int strength = floxel.mCluster + 1;
       if ( strength > Math.abs(mKillGrid[ky][kx]) ) {
         mKillGrid[ky][kx] = ( floxel.mType == 0 ? +strength : -strength );
@@ -539,8 +539,8 @@ public class Floxels extends Sprite {
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState != Floxel.State.NORMAL &&
            floxel.mState != Floxel.State.STUNNED ) continue;
-      final int kx = (int)Math.floor(floxel.mX*kKillGridSubdivide + offsetX),
-                ky = (int)Math.floor(floxel.mY*kKillGridSubdivide + offsetY);
+      final int kx = (int)(floxel.mX*kKillGridSubdivide + offsetX),
+                ky = (int)(floxel.mY*kKillGridSubdivide + offsetY);
       final int attackStrength = Math.abs(mKillGrid[ky][kx]) - 1,
                 attackType     = ( (mKillGrid[ky][kx] > 0) ? 0 : 1 );
       if ( floxel.mType != attackType && floxel.mCluster <= attackStrength ) {
@@ -569,8 +569,8 @@ public class Floxels extends Sprite {
     
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState == Floxel.State.UNUSED ) continue;
-      final int kx = (int)Math.floor(floxel.mX),
-                ky = (int)Math.floor(floxel.mY);
+      final int kx = (int)floxel.mX,
+                ky = (int)floxel.mY;
       mFloxelCounts[floxel.mType][ky][kx] += 1;
       mNumActiveFloxels[floxel.mType] += 1;
     }
@@ -699,8 +699,8 @@ public class Floxels extends Sprite {
       if ( floxel.mState == Floxel.State.UNUSED ) continue;
       float source[][] = mFlows[floxel.mType].source();
     
-      final int kx = subSize*(int)Math.floor(floxel.mX*subdivide),
-                ky = subSize*(int)Math.floor(floxel.mY*subdivide);
+      final int kx = subSize*(int)(floxel.mX*subdivide),
+                ky = subSize*(int)(floxel.mY*subdivide);
 
       if ( source[ky][kx] == 0.0f ) {
         for ( int dy = 0 ; dy < subSize ; dy++ ) {
@@ -716,8 +716,8 @@ public class Floxels extends Sprite {
       if ( floxel.mState == Floxel.State.UNUSED ) continue;
       float source[][] = mFlows[floxel.mType].source();
 
-      final int kx = (int)Math.floor(floxel.mX*refinement),
-                ky = (int)Math.floor(floxel.mY*refinement);
+      final int kx = (int)(floxel.mX*refinement),
+                ky = (int)(floxel.mY*refinement);
 
       if ( floxel.mState == Floxel.State.RECLAIMED ) {
         source[ky][kx] -= kFlockRepulsionStrength;
@@ -743,8 +743,8 @@ public class Floxels extends Sprite {
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState == Floxel.State.UNUSED ) continue;
 
-      final int kx = (int)Math.floor(floxel.mX * refinement),
-                ky = (int)Math.floor(floxel.mY * refinement);
+      final int kx = (int)(floxel.mX * refinement),
+                ky = (int)(floxel.mY * refinement);
 
       float strength = mHuntingStrengths[floxel.mType];
       if ( floxel.mState == Floxel.State.SPLATTED ) {

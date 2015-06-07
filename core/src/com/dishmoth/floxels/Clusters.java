@@ -93,8 +93,8 @@ public class Clusters {
     assert( x >= 0.0f && x < mBaseXSize );
     assert( y >= 0.0f && y < mBaseYSize );
     
-    final int ix = (int)Math.floor(mSubdivisions*x),
-              iy = (int)Math.floor(mSubdivisions*y);
+    final int ix = (int)(mSubdivisions*x),
+              iy = (int)(mSubdivisions*y);
     
     assert( ix >= 0 && ix < mXSize );
     assert( iy >= 0 && iy < mYSize );
@@ -111,8 +111,8 @@ public class Clusters {
     assert( x >= 0.0f && x < mBaseXSize );
     assert( y >= 0.0f && y < mBaseYSize );
     
-    final int ix = (int)Math.floor(mSubdivisions*x),
-              iy = (int)Math.floor(mSubdivisions*y);
+    final int ix = (int)(mSubdivisions*x),
+              iy = (int)(mSubdivisions*y);
     
     assert( ix >= 0 && ix < mXSize );
     assert( iy >= 0 && iy < mYSize );
