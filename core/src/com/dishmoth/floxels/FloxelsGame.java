@@ -127,12 +127,13 @@ public class FloxelsGame implements ApplicationListener {
     mTimingStats.update(deltaTime);
     
     final float tick = Env.TICK_TIME;
-    final float maxStep = 0.1f;
+    final float maxStep = tick;
     
     mTimeSince += Math.min(deltaTime, maxStep);
-    while ( mTimeSince > tick ) {
+    while ( mTimeSince > 0.99f*tick ) {
       update();
       mTimeSince -= tick;
+      mTimeSince = Math.max(0.0f, mTimeSince);
     }
     
     draw();
