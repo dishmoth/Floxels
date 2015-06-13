@@ -6,8 +6,6 @@
 
 package com.dishmoth.floxels;
 
-import java.util.Arrays;
-
 // class for generating flow field
 public class Flow {
 
@@ -59,11 +57,7 @@ public class Flow {
     mRefineFactor = ( 1 << mRefineLevel );
     
     mDesiredSolutionLevel = new int[mBaseYSize][mBaseXSize];
-    for ( int ky = 0 ; ky < mBaseYSize ; ky++ ) {
-      for ( int kx = 0 ; kx < mBaseXSize ; kx++ ) {
-        mDesiredSolutionLevel[ky][kx] = mRefineLevel;
-      }
-    }
+    resetDesiredSolutionLevel(mRefineLevel);
     
     mTopGrid = new FlowGrid(this, mRefineLevel);
     
@@ -147,6 +141,17 @@ public class Flow {
 
   // access to the desired solution levels
   public int[][] desiredSolutionLevel() { return mDesiredSolutionLevel; }
+  
+  // set the desired solution level uniformly across the grid
+  public void resetDesiredSolutionLevel(int level) {
+    
+    for ( int ky = 0 ; ky < mBaseYSize ; ky++ ) {
+      for ( int kx = 0 ; kx < mBaseXSize ; kx++ ) {
+        mDesiredSolutionLevel[ky][kx] = level;
+      }
+    }
+    
+  } // resetDesiredSolutionLevel()
   
   // specify the desired solution level for a block and its neighbours
   // (the maximum level should be used wherever we want velocity values)

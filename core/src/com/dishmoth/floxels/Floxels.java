@@ -580,13 +580,16 @@ public class Floxels extends Sprite {
   // we only need a high-quality solution in the blocks where the floxels are
   public void setDesiredSolutionLevels() {
 
-    final int maxLevel = mFlows[0].refineLevel();
+    final int desiredLevel = mFlows[0].refineLevel();
     
     for ( int type = 0 ; type < mNumFloxelTypes ; type++ ) {
+      mFlows[type].resetDesiredSolutionLevel(0);
+      
       for ( int ky = 0 ; ky < mGridYSize ; ky++ ) {
         for ( int kx = 0 ; kx < mGridXSize ; kx++ ) {
-          int level = ( mFloxelCounts[type][ky][kx] > 0 ? maxLevel : 0 );
-          mFlows[type].setDesiredSolutionLevel(kx, ky, level);
+          if ( mFloxelCounts[type][ky][kx] > 0 ) {
+            mFlows[type].setDesiredSolutionLevel(kx, ky, desiredLevel);
+          }
         }
       }
     }
