@@ -141,7 +141,7 @@ public class Floxels extends Sprite {
     
     mFloxelCounts = new int[mNumFloxelTypes][mGridYSize][mGridXSize];
     
-    mClusters = new Clusters(mFlows[0].blocks(), 2, kNumFloxels);
+    mClusters = new Clusters(mFlows[0], 2, kNumFloxels);
     
     mKillGrid = new int[mGridYSize*kKillGridSubdivide+1]
                        [mGridXSize*kKillGridSubdivide+1];
@@ -486,20 +486,20 @@ public class Floxels extends Sprite {
     
     float x = floxel.mX,
           y = floxel.mY;
-    FlowBlock block = flow.blocks()[(int)y][(int)x];
+    float walls[] = flow.walls()[(int)y][(int)x];
 
     if ( ignoreWalls || 
          ((int)(x+dx+1)-1) == (int)x ||
-         ( dx < 0 && !block.boundaryWest() ) ||
-         ( dx > 0 && !block.boundaryEast() ) ) {
+         ( dx < 0 && walls[Env.WEST] == Flow.OPEN ) ||
+         ( dx > 0 && walls[Env.EAST] == Flow.OPEN ) ) {
       x += dx;
-      block = flow.blocks()[(int)y][(int)x];
+      walls = flow.walls()[(int)y][(int)x];
     }
     
     if ( ignoreWalls ||
          ((int)(y+dy+1)-1) == (int)y ||
-         ( dy < 0 && !block.boundaryNorth() ) ||
-         ( dy > 0 && !block.boundarySouth() ) ) {
+         ( dy < 0 && walls[Env.NORTH] == Flow.OPEN ) ||
+         ( dy > 0 && walls[Env.SOUTH] == Flow.OPEN ) ) {
       y += dy;
     }
     
@@ -580,16 +580,13 @@ public class Floxels extends Sprite {
   // we only need a high-quality solution in the blocks where the floxels are
   public void setDesiredSolutionLevels() {
 
-    final int desiredLevel = mFlows[0].refineLevel();
+    final int maxLevel = mFlows[0].refineLevel();
     
     for ( int type = 0 ; type < mNumFloxelTypes ; type++ ) {
-      mFlows[type].resetDesiredSolutionLevel(desiredLevel); //??
-
       for ( int ky = 0 ; ky < mGridYSize ; ky++ ) {
         for ( int kx = 0 ; kx < mGridXSize ; kx++ ) {
-          if ( mFloxelCounts[type][ky][kx] > 0 ) {
-            mFlows[type].setDesiredSolutionLevel(kx, ky, desiredLevel);
-          }
+          int level = ( mFloxelCounts[type][ky][kx] > 0 ? maxLevel : 0 );
+          mFlows[type].setDesiredSolutionLevel(kx, ky, level);
         }
       }
     }

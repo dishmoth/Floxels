@@ -14,8 +14,8 @@ public class Clusters {
   // cluster scores range from 0 to maxClusterScore()
   static public int maxClusterScore() { return 31; }
   
-  // maze of blocks making up the base grid 
-  private final FlowBlock mBlocks[][];
+  // the object we're clustering for
+  private final Flow mOwner;
   
   // total number of particles
   private final int mMaxClusterSize;
@@ -49,17 +49,16 @@ public class Clusters {
   private boolean mClustersReady;
   
   // constructor
-  public Clusters(FlowBlock blocks[][], int subdivisions, int numParticles) {
+  public Clusters(Flow owner, int subdivisions, int numParticles) {
     
-    assert( blocks != null );
-    assert( blocks[0] != null );
+    assert( owner != null );
     assert( subdivisions >= 1 );
     
-    mBlocks = blocks;
+    mOwner = owner;
     mSubdivisions = subdivisions;
     
-    mBaseXSize = blocks[0].length;
-    mBaseYSize = blocks.length;
+    mBaseXSize = mOwner.baseXSize();
+    mBaseYSize = mOwner.baseYSize();
     
     mXSize = mSubdivisions*mBaseXSize;
     mYSize = mSubdivisions*mBaseYSize;
@@ -78,7 +77,9 @@ public class Clusters {
   public void reset() {
     
     for ( int iy = 0 ; iy < mYSize ; iy++ ) {
-      Arrays.fill(mData[iy], 0);
+      for ( int ix = 0 ; ix < mXSize ; ix++ ) {
+        mData[iy][ix] = 0;
+      }
     }
     mNextCluster = 1;
     mClustersReady = false;
@@ -136,6 +137,7 @@ public class Clusters {
     //print("makeClusters():");
     
     assert( !mClustersReady );
+    final float baseWalls[][][] = mOwner.walls();
     
     for ( int jy = 0 ; jy < mYSize ; jy++ ) {
       for ( int jx = 0 ; jx < mXSize ; jx++ ) {
@@ -145,17 +147,17 @@ public class Clusters {
 
         final int ky = jy/mSubdivisions,
                   kx = jx/mSubdivisions;
-        FlowBlock block = mBlocks[ky][kx];
+        float walls[] = baseWalls[ky][kx];
         
-        final boolean west = !block.boundaryWest(),
-                      east = !block.boundaryEast(),
-                      north = !block.boundaryNorth();
+        final boolean west = (walls[Env.WEST]==Flow.OPEN),
+                      east = (walls[Env.EAST]==Flow.OPEN),
+                      north = (walls[Env.NORTH]==Flow.OPEN);
         final boolean nw = ( kx > 0 && ky > 0 )
-                        && ( (west && !mBlocks[ky][kx-1].boundaryNorth())
-                          || (north && !mBlocks[ky-1][kx].boundaryWest()) );
+                  && ( (west && baseWalls[ky][kx-1][Env.NORTH]==Flow.OPEN)
+                    || (north && baseWalls[ky-1][kx][Env.WEST]==Flow.OPEN) );
         final boolean ne = ( kx < mBaseXSize-1 && ky > 0 )
-                        && ( (east && !mBlocks[ky][kx+1].boundaryNorth())
-                          || (north && !mBlocks[ky-1][kx].boundaryEast()) );
+                  && ( (east && baseWalls[ky][kx+1][Env.NORTH]==Flow.OPEN)
+                    || (north && baseWalls[ky-1][kx][Env.EAST]==Flow.OPEN) );
 
         final int iy = jy - ky*mSubdivisions,
                   ix = jx - kx*mSubdivisions;

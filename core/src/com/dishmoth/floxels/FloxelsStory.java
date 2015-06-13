@@ -467,21 +467,16 @@ public class FloxelsStory extends Story {
     
     final float inFlow = VentControl.inFlowDefault(); 
 
-    FlowBlock blocks[][] = flow.blocks();
-    assert( blocks.length == ny && blocks[0].length == nx );
+    float flowWalls[][][] = flow.walls();
+    assert( flowWalls.length == ny && flowWalls[0].length == nx );
 
     for ( int iy = 0 ; iy < ny ; iy++ ) {
       for ( int ix = 0 ; ix < nx ; ix++ ) {
-        FlowBlock b = blocks[iy][ix];        
-        if ( b == null ) {
-          b = blocks[iy][ix] = new FlowBlock(ix, iy);
-        } else {
-          b.clear();
-        }
-        if ( maze.horizWall(ix, iy) )   b.setBoundaryNorth(inFlow);
-        if ( maze.horizWall(ix, iy+1) ) b.setBoundarySouth(inFlow);
-        if ( maze.vertWall(ix, iy) )    b.setBoundaryWest(inFlow);
-        if ( maze.vertWall(ix+1, iy) )  b.setBoundaryEast(inFlow);
+        float walls[] = flowWalls[iy][ix];
+        walls[Env.NORTH] = ( maze.horizWall(ix, iy)   ? inFlow : Flow.OPEN );
+        walls[Env.SOUTH] = ( maze.horizWall(ix, iy+1) ? inFlow : Flow.OPEN );
+        walls[Env.WEST]  = ( maze.vertWall(ix, iy)    ? inFlow : Flow.OPEN );
+        walls[Env.EAST]  = ( maze.vertWall(ix+1, iy)  ? inFlow : Flow.OPEN );
       }
     }
     

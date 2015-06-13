@@ -16,10 +16,21 @@ public class Flow {
     public float x=0.0f, y=0.0f;
   } // class Flow.Vel
 
+  // value in the mBaseWalls array that indicates an opening
+  static public final float OPEN = Float.MAX_VALUE;
+
   // the base grid (no refinement)
-  private FlowBlock mBaseBlocks[][] = null;
-  private int mBaseXSize,
-              mBaseYSize;
+  private final int mBaseXSize,
+                    mBaseYSize;
+
+  // the boundaries of the base grid, and the velocity conditions there
+  // [y][x][direc] = in-flow value (boundary) or OPEN (no boundary)
+  // (in-flow is velocity of fluid coming in through the boundary)
+  private float mBaseWalls[][][];
+
+  // how refined the solution needs to be on the base grid
+  // (an optimization if a quality solution is only needed in some regions) 
+  private int mDesiredSolutionLevel[][];
   
   // the most refined solution grid
   private FlowGrid mTopGrid = null;
@@ -36,17 +47,30 @@ public class Flow {
     
     mBaseXSize = baseXSize;
     mBaseYSize = baseYSize;
-    mBaseBlocks = new FlowBlock[mBaseYSize][mBaseXSize];
     
+    mBaseWalls = new float[mBaseYSize][mBaseXSize][4];
+    for ( int iy = 0 ; iy < mBaseYSize ; iy++ ) {
+      for ( int ix = 0 ; ix < mBaseXSize ; ix++ ) {
+        for ( int d = 0 ; d < 4 ; d++ ) mBaseWalls[iy][ix][d] = OPEN;
+      }
+    }    
+
     mRefineLevel = refineLevel;
     mRefineFactor = ( 1 << mRefineLevel );
     
-    mTopGrid = new FlowGrid(mBaseBlocks, mRefineLevel);
+    mDesiredSolutionLevel = new int[mBaseYSize][mBaseXSize];
+    for ( int ky = 0 ; ky < mBaseYSize ; ky++ ) {
+      for ( int kx = 0 ; kx < mBaseXSize ; kx++ ) {
+        mDesiredSolutionLevel[ky][kx] = mRefineLevel;
+      }
+    }
+    
+    mTopGrid = new FlowGrid(this, mRefineLevel);
     
   } // constructor
 
-  // access to block layout
-  public FlowBlock[][] blocks() { return mBaseBlocks; }
+  // access to wall layout and in-flow values
+  public float[][][] walls() { return mBaseWalls; }
 
   // access to potential field
   public float[][] data() { return mTopGrid.data(); }
@@ -72,7 +96,9 @@ public class Flow {
     
     float source[][] = mTopGrid.source();
     for ( int ky = 0 ; ky < source.length ; ky++ ) {
-      Arrays.fill(source[ky], 0.0f);
+      for ( int kx = 0, len = source[ky].length ; kx < len ; kx++ ) {
+        source[ky][kx] = 0.0f;
+      }
     }
     
   } // clearSource()
@@ -91,7 +117,7 @@ public class Flow {
     
     final int kx = ( ix >> mRefineLevel ),
               ky = ( iy >> mRefineLevel );
-    FlowBlock block = mBaseBlocks[ky][kx];
+    float walls[] = mBaseWalls[ky][kx];
     
     float data[][] = mTopGrid.data();
     final float delta = 1.0f/mRefineFactor;
@@ -101,40 +127,26 @@ public class Flow {
               ix0 = (kx << mRefineLevel),
               ix1 = ix0 + mRefineFactor-1;
         
-    if ( block.boundaryWest() && ix == ix0 ) {
-      vel.x = 0.5f*( (data[iy][ix+1] - data[iy][ix])/delta
-                   + block.inFlowWest() );
-    } else if ( block.boundaryEast() && ix == ix1 ) {
-      vel.x = 0.5f*( (data[iy][ix] - data[iy][ix-1])/delta
-                   - block.inFlowEast() );                
+    if ( ix == ix0 && walls[Env.WEST] != OPEN ) {
+      vel.x = 0.5f*((data[iy][ix+1] - data[iy][ix])/delta + walls[Env.WEST]);
+    } else if ( ix == ix1 && walls[Env.EAST] != OPEN ) {
+      vel.x = 0.5f*((data[iy][ix] - data[iy][ix-1])/delta - walls[Env.EAST]);                
     } else {
       vel.x = (data[iy][ix+1] - data[iy][ix-1])/(2*delta);
     }
     
-    if ( block.boundaryNorth() && iy == iy0 ) {
-      vel.y = 0.5f*( (data[iy+1][ix] - data[iy][ix])/delta
-                   + block.inFlowNorth() );
-    } else if ( block.boundarySouth() && iy == iy1 ) {
-      vel.y = 0.5f*( (data[iy][ix] - data[iy-1][ix])/delta
-                   - block.inFlowSouth() );                
+    if ( iy == iy0 && walls[Env.NORTH] != OPEN ) {
+      vel.y = 0.5f*((data[iy+1][ix] - data[iy][ix])/delta + walls[Env.NORTH]);
+    } else if ( iy == iy1 && walls[Env.SOUTH] != OPEN ) {
+      vel.y = 0.5f*((data[iy][ix] - data[iy-1][ix])/delta - walls[Env.SOUTH]);                
     } else {
       vel.y = (data[iy+1][ix] - data[iy-1][ix])/(2*delta);
     }    
     
   } // getVelocity()
 
-  // set the desired solution level uniformly across the grid
-  public void resetDesiredSolutionLevel(int level) {
-    
-    assert( level >= 0 && level <= mRefineLevel );
-
-    for ( int ky = 0 ; ky < mBaseYSize ; ky++ ) {
-      for ( int kx = 0 ; kx < mBaseXSize ; kx++ ) {
-        mBaseBlocks[ky][kx].setDesiredSolutionLevel(level);
-      }
-    }
-    
-  } // resetDesiredSolutionLevel()
+  // access to the desired solution levels
+  public int[][] desiredSolutionLevel() { return mDesiredSolutionLevel; }
   
   // specify the desired solution level for a block and its neighbours
   // (the maximum level should be used wherever we want velocity values)
@@ -144,22 +156,31 @@ public class Flow {
     assert( yBlock >= 0 && yBlock < mBaseYSize );
     assert( level >= 0 && level <= mRefineLevel );
 
-    FlowBlock block = mBaseBlocks[yBlock][xBlock];
-    block.setMinDesiredSolutionLevel(level);
-    
-    if ( !block.boundaryEast() ) {
-      mBaseBlocks[yBlock][xBlock+1].setMinDesiredSolutionLevel(level);
+    setMinDesiredSolutionLevel(xBlock, yBlock, level);
+
+    float walls[] = mBaseWalls[yBlock][xBlock];
+    if ( walls[Env.EAST] == OPEN ) {
+      setMinDesiredSolutionLevel(xBlock+1, yBlock, level);
     }
-    if ( !block.boundaryWest() ) {
-      mBaseBlocks[yBlock][xBlock-1].setMinDesiredSolutionLevel(level);
+    if ( walls[Env.WEST] == OPEN ) {
+      setMinDesiredSolutionLevel(xBlock-1, yBlock, level);
     }
-    if ( !block.boundaryNorth() ) {
-      mBaseBlocks[yBlock-1][xBlock].setMinDesiredSolutionLevel(level);
+    if ( walls[Env.NORTH] == OPEN ) {
+      setMinDesiredSolutionLevel(xBlock, yBlock-1, level);
     }
-    if ( !block.boundarySouth() ) {
-      mBaseBlocks[yBlock+1][xBlock].setMinDesiredSolutionLevel(level);
+    if ( walls[Env.SOUTH] == OPEN ) {
+      setMinDesiredSolutionLevel(xBlock, yBlock+1, level);
     }
           
   } // setDesiredSolutionLevel()
+  
+  // specify the desired solution level for a block
+  private void setMinDesiredSolutionLevel(int xBlock, int yBlock, int level) {
+    
+    if ( mDesiredSolutionLevel[yBlock][xBlock] < level ) {
+      mDesiredSolutionLevel[yBlock][xBlock] = level;
+    }
+    
+  } // setMinDesiredSolutionLevel()
   
 } // class Flow

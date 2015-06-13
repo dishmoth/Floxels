@@ -151,9 +151,9 @@ public class VentControl {
     trackEnemy();
     updateTarget();
     
-    FlowBlock blocks[][] = mFlow.blocks();
-    for ( int iy = 0 ; iy < blocks.length ; iy++ ) {
-      for ( int ix = 0 ; ix < blocks[iy].length ; ix++ ) {
+    float flowWalls[][][] = mFlow.walls();
+    for ( int iy = 0 ; iy < flowWalls.length ; iy++ ) {
+      for ( int ix = 0 ; ix < flowWalls[iy].length ; ix++ ) {
         final float x = ix + 0.5f,
                     y = iy + 0.5f;
         
@@ -165,9 +165,9 @@ public class VentControl {
         
         final float inFlow = kInFlowDefault + amp*kInFlowVariation;
         
-        FlowBlock block = blocks[iy][ix];
+        float walls[] = flowWalls[iy][ix];
         for ( int side = 0 ; side < 4 ; side++ ) {
-          if ( block.boundary(side) ) block.setBoundary(side, inFlow);
+          if ( walls[side] != Flow.OPEN ) walls[side] = inFlow;
         }
       }
     }

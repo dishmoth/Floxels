@@ -6,30 +6,30 @@
 
 package com.dishmoth.floxels;
 
-import java.util.Arrays;
-
 // solution to Poisson's equation at a particular level of refinement 
 public class FlowGrid {
 
   // number of relaxation steps on the grid, depending on refinement
-  static private final int kNumSmoothIterations = 1,//!!!2,
+  static private final int kNumSmoothIterations = 1,
                            kNumCoarseIterations = 20;
 
   // if true then a full solution is only calculated in specified regions
   static private final boolean kUseDesiredSolutionLevels = true;
   
   // the base grid (no refinement)
-  private final FlowBlock mBaseBlocks[][];
   private final int mBaseXSize,
                     mBaseYSize;
-  
+
   // refinement factor and level for this grid
-  private int mRefineFactor,
-              mRefineLevel;
+  private final int mRefineFactor,
+                    mRefineLevel;
 
   // size of this particular grid
   private final int mXSize,
                     mYSize;
+  
+  // the owner of the grid hierarchy
+  private final Flow mOwner;
   
   // the next grid in the multi-grid hierarchy
   private final FlowGrid mCoarserGrid;
@@ -41,13 +41,16 @@ public class FlowGrid {
   private final float mSource[][];
   
   // constructor
-  public FlowGrid(FlowBlock blocks[][], int refineLevel) {
+  public FlowGrid(Flow owner, int refineLevel) {
     
+    assert( owner != null );
     assert( refineLevel >= 0 );
     
-    mBaseBlocks = blocks;
-    mBaseXSize = mBaseBlocks[0].length;
-    mBaseYSize = mBaseBlocks.length;
+    mOwner = owner;
+    
+    float walls[][][] = mOwner.walls();
+    mBaseXSize = walls[0].length;
+    mBaseYSize = walls.length;
     
     mRefineLevel = refineLevel;
     mRefineFactor = ( 1 << refineLevel );
@@ -59,7 +62,7 @@ public class FlowGrid {
     mSource = new float[mYSize][mXSize];
 
     if ( mRefineLevel > 0 ) {
-      mCoarserGrid = new FlowGrid(blocks, mRefineLevel-1);
+      mCoarserGrid = new FlowGrid(mOwner, mRefineLevel-1);
     } else {
       mCoarserGrid = null;
     }
@@ -72,8 +75,9 @@ public class FlowGrid {
   public void reset() {
     
     for ( int ky = 0 ; ky < mYSize ; ky++ ) {
-      Arrays.fill(mData[ky], 0.0f);
-      Arrays.fill(mSource[ky], 0.0f);
+      for ( int kx = 0 ; kx < mXSize ; kx++ ) {
+        mData[ky][kx] = mSource[ky][kx] = 0.0f;
+      }
     }
     
     if ( mCoarserGrid != null ) mCoarserGrid.reset();
@@ -150,26 +154,28 @@ public class FlowGrid {
     final float delta = 1.0f;
     final float sourceFactor = delta*delta/4.0f;
     
+    final float baseWalls[][][] = mOwner.walls();
+    
     for ( int stagger = 0 ; stagger <= 1 ; stagger++ ) {
       for ( int ky = 0 ; ky < mYSize ; ky++ ) {
 
         final int kx0 = ((stagger+ky) % 2);
         for ( int kx = kx0 ; kx < mXSize ; kx+=2 ) {
-          final FlowBlock block = mBaseBlocks[ky][kx];
+          final float walls[] = baseWalls[ky][kx];
           
           final float phi0 = mData[ky][kx];
-          final float phiN = block.boundaryNorth() 
-                             ? ( phi0 - block.inFlowNorth() )
-                             : mData[ky-1][kx];
-          final float phiS = block.boundarySouth() 
-                             ? ( phi0 - block.inFlowSouth() )
-                             : mData[ky+1][kx];
-          final float phiE = block.boundaryEast() 
-                             ? ( phi0 - block.inFlowEast() )
-                             : mData[ky][kx+1];
-          final float phiW = block.boundaryWest() 
-                             ? ( phi0 - block.inFlowWest() )
-                             : mData[ky][kx-1];
+          final float phiN = ( walls[Env.NORTH] == Flow.OPEN ) 
+                             ? mData[ky-1][kx]
+                             : ( phi0 - walls[Env.NORTH] );
+          final float phiS = ( walls[Env.SOUTH] == Flow.OPEN ) 
+                             ? mData[ky+1][kx]
+                             : ( phi0 - walls[Env.SOUTH] );
+          final float phiE = ( walls[Env.EAST] == Flow.OPEN ) 
+                             ? mData[ky][kx+1]
+                             : ( phi0 - walls[Env.EAST] );
+          final float phiW = ( walls[Env.WEST] == Flow.OPEN ) 
+                             ? mData[ky][kx-1]
+                             : ( phi0 - walls[Env.WEST] );
  
           mData[ky][kx] = 0.25f*( phiN + phiS + phiE + phiW )
                           - sourceFactor*mSource[ky][kx];
@@ -187,14 +193,17 @@ public class FlowGrid {
     final float delta = 1.0f/mRefineFactor;
     final float sourceFactor = delta*delta/4.0f;
     
+    final float baseWalls[][][] = mOwner.walls();
+    final int desiredSolutionLevel[][] = mOwner.desiredSolutionLevel();
+    
     for ( int ky = 0 ; ky < mBaseYSize ; ky++ ) {
       for ( int kx = 0 ; kx < mBaseXSize ; kx++ ) {
         
-        final FlowBlock block = mBaseBlocks[ky][kx];
-        
         if ( kUseDesiredSolutionLevels &&
-             block.desiredSolutionLevel() < mRefineLevel ) continue;
+             desiredSolutionLevel[ky][kx] < mRefineLevel ) continue;
 
+        final float walls[] = baseWalls[ky][kx];
+        
         final int iy0 = ( ky << mRefineLevel ),
                   iy1 = iy0 + mRefineFactor-1,
                   ix0 = ( kx << mRefineLevel ),
@@ -204,17 +213,17 @@ public class FlowGrid {
           for ( int iy = iy0 ; iy <= iy1 ; iy++ ) {
             for ( int ix = ix0 + ((stagger+iy)%2) ; ix <= ix1 ; ix+=2 ) {
               final float phi0 = mData[iy][ix];
-              final float phiN = ( iy==iy0 && block.boundaryNorth() ) 
-                                 ? ( phi0 - delta*block.inFlowNorth() )
+              final float phiN = ( iy==iy0 && walls[Env.NORTH] != Flow.OPEN ) 
+                                 ? ( phi0 - delta*walls[Env.NORTH] )
                                  : mData[iy-1][ix];
-              final float phiS = ( iy==iy1 && block.boundarySouth() ) 
-                                 ? ( phi0 - delta*block.inFlowSouth() )
+              final float phiS = ( iy==iy1 && walls[Env.SOUTH] != Flow.OPEN ) 
+                                 ? ( phi0 - delta*walls[Env.SOUTH] )
                                  : mData[iy+1][ix];
-              final float phiE = ( ix==ix1 && block.boundaryEast() ) 
-                                 ? ( phi0 - delta*block.inFlowEast() )
+              final float phiE = ( ix==ix1 && walls[Env.EAST] != Flow.OPEN ) 
+                                 ? ( phi0 - delta*walls[Env.EAST] )
                                  : mData[iy][ix+1];
-              final float phiW = ( ix==ix0 && block.boundaryWest() ) 
-                                 ? ( phi0 - delta*block.inFlowWest() )
+              final float phiW = ( ix==ix0 && walls[Env.WEST] != Flow.OPEN ) 
+                                 ? ( phi0 - delta*walls[Env.WEST] )
                                  : mData[iy][ix-1];
               mData[iy][ix] = 0.25f*( phiN + phiS + phiE + phiW )
                               - sourceFactor*mSource[iy][ix];

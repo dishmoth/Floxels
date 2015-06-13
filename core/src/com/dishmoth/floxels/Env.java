@@ -12,11 +12,11 @@ import com.badlogic.gdx.Gdx;
 
 public class Env {
 
-  // enumeration of directions (used in various places)
-  static public final int kDirectionUp    = 0,
-                          kDirectionDown  = 1,
-                          kDirectionLeft  = 2,
-                          kDirectionRight = 3;
+  // enumeration of directions
+  static public final int NORTH = 0,
+                          SOUTH = 1,
+                          EAST  = 2,
+                          WEST  = 3;
   
   // size of a square tile
   static private int kTileWidth = 58;
