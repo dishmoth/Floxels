@@ -26,18 +26,31 @@ public class Mazes {
 
         // maze 1
         { " _ _ _ _ _ _ _ _ _ _ ",
+          "I  _ _  I  _ _ _ _  I",
+          "I I  _  I I     I  _I",
+          "I I   I_ _I I I_ _  I",
+          "I  _I_ _ _ _I I    _I",
+          "I_   _ _ _   _I I   I",
+          "I  _ _  I   I  _ _I I",
+          "I I  _ _I I I I  _  I",
+          "I I_ _   _I I I_  I I",
+          "I  _ _ _I   I_ _ _I I",
+          "I_ _ _ _ _I_ _ _ _ _I" },
+          
+        // maze 2
+        { " _ _ _ _ _ _ _ _ _ _ ",
           "I  _ _    I  _ _ _  I",
-          "I I  _ _I I I   I  _I",
-          "I I I  _ _I_ _I I_  I",
-          "I  _I_    I  _ _I  _I",
-          "I_  I  _I  _ _  I_  I",
-          "I  _I   I_ _      I I",
+          "I I  _ _I I I   I   I",
+          "I I I  _ _ _ _I I I I",
+          "I  _I I   I  _ _I  _I",
+          "I_  I  _I  _ _   _  I",
+          "I  _I   I_ _  I   I I",
           "I   I I  _ _  I I I I",
           "I I I I I   I_ _I I I",
-          "I I_ _I I I_ _ _ _I I",
+          "I I_ _I   I_ _ _ _I I",
           "I_ _ _ _I_ _ _ _ _ _I" },
 
-        // maze 2
+        /*  
         { " _ _ _ _ _ _ _ _ _ _ ",
           "I  _ _  I    _ _    I",
           "I   I     I_     _I I",
@@ -50,7 +63,6 @@ public class Mazes {
           "I I  _ _  I    _I_  I",
           "I_ _ _ _ _ _I_ _ _ _I" },
 
-        // maze 3
         { " _ _ _ _ _ _ _ _ _ _ ",
           "I     I  _ _        I",
           "I  _I  _     _I I_  I",
@@ -63,7 +75,6 @@ public class Mazes {
           "I   I I  _ _    I   I",
           "I_ _ _ _ _ _ _I_ _ _I" },
 
-        // maze 4
         { " _ _ _ _ _ _ _ _ _ _ ",
           "I  _ _    I  _   _  I",
           "I I     I_  I     I I",
@@ -76,7 +87,6 @@ public class Mazes {
           "I I_   _I   I  _ _I I",
           "I_ _ _ _ _I_ _ _ _ _I" },
 
-        // maze 5
         { " _ _ _ _ _ _ _ _ _ _ ",
           "I  _ _ _ _     _ _  I",
           "I I        _I_    I I",
@@ -88,7 +98,8 @@ public class Mazes {
           "I I    _ _    I   I I",
           "I I_ _  I  _ _ _ _I I",
           "I_ _ _ _ _ _ _ _ _ _I" }
-          
+        */
+        
         };
 
   static private final String kMazeData11x9[][] = {
@@ -105,8 +116,36 @@ public class Mazes {
           "I_  I I I   I I I I",
           "I   I I I I I I I I",
           "I I_ _I   I I I_  I",
-          "I_ _ _ _I_ _I_ _ _I" }
+          "I_ _ _ _I_ _I_ _ _I" },
         
+        // maze 1
+        { " _ _ _ _ _ _ _ _ _ ",
+          "I  _ _  I  _ _ _  I",
+          "I I  _  I I     I I",
+          "I I   I_ _I I I_  I",
+          "I  _I_ _ _ _I I   I",
+          "I_   _ _ _   _I I I",
+          "I  _ _  I   I    _I",
+          "I I  _ _I I I I   I",
+          "I I_   _  I I I I I",
+          "I_  I I  _I I  _I I",
+          "I  _I_ _I   I_ _  I",
+          "I_ _ _ _ _I_ _ _ _I" },
+        
+        // maze 2
+        { " _ _ _ _ _ _ _ _ _ ",
+          "I  _    I  _ _ _  I",
+          "I I  _I I I   I   I",
+          "I I I  _ _ _I I I I",
+          "I  _I   I  _ _I  _I",
+          "I I   I  _ _  I   I",
+          "I I I I_ _  I I I I",
+          "I_  I  _  I I  _I I",
+          "I  _I I   I I   I I",
+          "I I  _  I I_ _I I I",
+          "I I_  I I_ _ _ _I I",
+          "I_ _ _I_ _ _ _ _ _I" },
+
         };
 
   static private final String kMazeData12x8[][] = {
@@ -124,8 +163,38 @@ public class Mazes {
           "I_   _I I I  _I I",
           "I  _  I I I I  _I",
           "I  _ _I_  I I_  I",
-          "I_ _ _ _ _I_ _ _I" }
+          "I_ _ _ _ _I_ _ _I" },
         
+        // maze 1
+        { " _ _ _ _ _ _ _ _ ",
+          "I  _  I  _ _ _  I",
+          "I   I I I     I I",
+          "I I I_ _I I I_  I",
+          "I I  _ _ _I I   I",
+          "I_  I  _   _I I I",
+          "I  _I I   I    _I",
+          "I  _ _I I I I   I",
+          "I I  _  I I I I I",
+          "I I I  _I I  _I I",
+          "I_ _I I   I I   I",
+          "I  _ _I I I_ _I I",
+          "I_ _ _ _I_ _ _ _I" },
+        
+        // maze 2
+        { " _ _ _ _ _ _ _ _ ",
+          "I     I  _ _ _  I",
+          "I I I_ _I  _    I",
+          "I I  _ _ _I   I I",
+          "I_    I   I I I I",
+          "I  _I I I_ _I  _I",
+          "I I    _ _  I   I",
+          "I I I_ _  I I I I",
+          "I_   _ _  I  _I I",
+          "I  _I   I I   I I",
+          "I I   I I_ _I I I",
+          "I I I I_ _ _ _I I",
+          "I_ _I_ _ _ _ _ _I" },
+
         };
 
   // return a maze object for the specified index
@@ -152,7 +221,11 @@ public class Mazes {
     boolean flipVert  = true,
             flipHoriz = false;
 
+    int repeats = index/mazeData.length;
     index = Env.fold(index, mazeData.length);
+    if ( (repeats & 1) != 0 ) flipHoriz = !flipHoriz;
+    if ( (repeats & 2) != 0 ) flipVert = !flipVert;
+    
     return new Maze( mazeData[index], flipXY, flipVert, flipHoriz );
     
   } // get()

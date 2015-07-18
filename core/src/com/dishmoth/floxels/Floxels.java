@@ -17,7 +17,7 @@ public class Floxels extends Sprite {
   public static class EventPopulationDestroyed extends StoryEvent {
     public int mType;
     EventPopulationDestroyed(int type) { mType = type; }
-  }
+  } // Floxels.EventPopulationDestroyed
 
   // how sprite is displayed relative to others
   static private final int kScreenLayer = 50; 
@@ -44,7 +44,7 @@ public class Floxels extends Sprite {
   
   // maximum floxel speed
   static private final float kMaxSpeed = 3.0f;
-
+  
   // if two floxels are on top of one another then try to separate them
   static private final float kNudgeDistance = 0.02f;
   
@@ -68,6 +68,10 @@ public class Floxels extends Sprite {
                              kBlinkFraction     = 0.3f,
                              kSplatTime         = 0.2f;
   static private final int   kFaceChangeStep    = 10;
+  
+  // how floxels are summoned to the cursor
+  static private final float kSummonDelay = 0.2f,
+                             kSummonSpeed = 70.0f;
   
   // the flow field
   private Flow mFlows[];
@@ -113,6 +117,10 @@ public class Floxels extends Sprite {
                 mPullYPos,
                 mPullRadius;
   
+  // call all floxels to the pull position
+  private boolean mSummonFloxels;
+  private float   mSummonTimer;
+  
   // constructor
   public Floxels(Flow flows[]) {
     
@@ -152,6 +160,8 @@ public class Floxels extends Sprite {
 
     mPullType = -1;
     mPullXPos = mPullYPos = mPullRadius = 0.0f;
+    mSummonFloxels = false;
+    mSummonTimer = 0.0f;
     
   } // constructor
 
@@ -251,6 +261,8 @@ public class Floxels extends Sprite {
   // gradually remove a number of floxels without attracting attention
   public void reclaimFloxels(int num, int type) {
     
+    assert(false); // not currently called by anything
+    
     assert( type >= 0 && type < mNumFloxelTypes );
     assert( mNumActiveFloxels[type] >= num );
 
@@ -347,6 +359,69 @@ public class Floxels extends Sprite {
     
   } // captureFloxels()
   
+  // convert some of the majority population and call them to the cursor
+  // (move them to the end of the list so they are drawn over everything else)
+  public void summonFloxels(int num, int type) {
+    
+    assert( !mSummonFloxels );
+    
+    final int otherType = 1-type;
+    
+    assert( mNumActiveFloxels[type] == 0 );
+    assert( num > 0 );
+    assert( num <= mNumActiveFloxels[otherType] );
+    
+    final int splatTime = Math.round( Env.TICKS_PER_SEC*kSummonDelay );
+
+    final int step = Env.randomInt(1,10);
+    int offset = 0;
+    
+    int index = offset;
+    int endIndex = kNumFloxels;
+
+    int numGot = 0;
+    while ( numGot < num ) {
+      Floxel floxel = mFloxels[index];
+      if ( floxel.mState != Floxel.State.UNUSED ) {
+        assert( floxel.mType == otherType );
+        floxel.mState = Floxel.State.SPLATTED;
+        floxel.mTimer = (byte)splatTime;
+        floxel.mFace = (byte)Floxel.SPLAT_FACE;
+        floxel.mCluster = (byte)Clusters.maxClusterScore();
+        floxel.mNeedsNudge = false;
+        floxel.mType = (byte)type;
+        floxel.mShade = (byte)0;
+        
+        do {
+          endIndex -= 1;
+          assert( endIndex >= 0 );
+        } while ( mFloxels[endIndex].mState != Floxel.State.UNUSED &&
+                  mFloxels[endIndex].mType == (byte)type &&
+                  endIndex > index );
+        
+        mFloxels[index] = mFloxels[endIndex];
+        mFloxels[endIndex] = floxel;
+
+        numGot += 1;
+      } else {
+        index += step;
+      }
+      
+      if ( index >= endIndex ) {
+        offset += 1;
+        assert( offset < step );
+        index = offset;
+      }
+    }
+    
+    mNumActiveFloxels[type] += num;
+    mNumActiveFloxels[otherType] -= num;
+    
+    mSummonFloxels = true;
+    mSummonTimer = 0.0f;
+    
+  } // summonFloxels()
+  
   // advance by one frame
   @Override
   public void advance(LinkedList<Sprite> addTheseSprites,
@@ -373,6 +448,14 @@ public class Floxels extends Sprite {
       }
     }
 
+    if ( mSummonFloxels ) {
+      mSummonTimer += Env.TICK_TIME;
+      if ( mPullType == -1 || mNumActiveFloxels[mPullType] == 0 ) {
+        mSummonFloxels = false;
+        mSummonTimer = 0.0f;
+      }
+    }
+    
     mPullType = -1;
     
   } // Sprite.advance()
@@ -383,7 +466,10 @@ public class Floxels extends Sprite {
     final float dt = Env.TICK_TIME;
     
     final int type = floxel.mType;
-    Flow flow = mFlows[type];
+
+    int flowType = type;
+    if ( mSummonFloxels && type == mPullType ) flowType = 1-mPullType;
+    Flow flow = mFlows[flowType];
     
     // special behaviour for certain floxel states
 
@@ -468,8 +554,17 @@ public class Floxels extends Sprite {
       float px = mPullXPos - floxel.mX,
             py = mPullYPos - floxel.mY;
       float p2 = px*px + py*py;
-      if ( p2 <= mPullRadius*mPullRadius ) {
-        float step = kMaxSpeed*dt;
+      if ( mSummonFloxels || p2 <= mPullRadius*mPullRadius ) {
+        float speed = kMaxSpeed;
+        if ( mSummonFloxels ) {
+          if ( mSummonTimer < kSummonDelay ) {
+            speed = 0.0f;
+          } else {
+            float summonDt = mSummonTimer - kSummonDelay; 
+            speed = summonDt*summonDt*kSummonSpeed;
+          }
+        }
+        float step = speed*dt;
         if ( p2 < step*step ) {
           dx = px;
           dy = py;
@@ -513,6 +608,8 @@ public class Floxels extends Sprite {
 
   // convert floxels if they collide with stronger ones of the other type
   private void fightFloxels() {
+    
+    if ( mSummonFloxels ) return;
     
     assert( mNumFloxelTypes == 2 );
     

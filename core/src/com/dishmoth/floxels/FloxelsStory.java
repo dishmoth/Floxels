@@ -48,7 +48,7 @@ public class FloxelsStory extends Story {
                              kRestartLongDelay = 2.0f,
                              kStartleDelay     = 1.0f,
                              kChangeDelay      = 0.015f,
-                             kChangeFirstDelay = 2.0f;
+                             kChangeFirstDelay = 1.0f;
   
   // references to some specific objects
   private Background  mBackground;
@@ -68,7 +68,7 @@ public class FloxelsStory extends Story {
   // when changing the maze, these are the changes remaining to be made
   private LinkedList<Maze.Delta> mMazeDeltas = new LinkedList<Maze.Delta>();
   
-  // number of floxels at the start of the level
+  // number of enemy floxels at the start of the level (not including converts)
   private int mMajorityPopulation;
   
   // tweak to the aggression of the majority floxels (1.0 for no change)
@@ -133,20 +133,6 @@ public class FloxelsStory extends Story {
         it.remove();
       } // Story.EventGameBegins
 
-      //if ( event instanceof LaunchCursor.EventLaunchComplete ) {
-      //  mStartleTimer = kStartleDelay;
-      //  mCursor = new SummonCursor(mMaze, mFloxels);
-      //  spriteManager.addSprite(mCursor);
-      //  it.remove();
-      //} // LaunchCursor.EventLaunchComplete
-
-      //if ( event instanceof SummonCursor.EventCaptureComplete ) {
-      //  mCursor = new LaunchCursor(mFloxels.numReserveFloxels(kMinorityType),
-      //                             kMinorityType, mFloxels);
-      //  spriteManager.addSprite(mCursor);
-      //  it.remove();
-      //} // LaunchCursor.EventLaunchComplete
-
       if ( event instanceof Floxels.EventPopulationDestroyed ) {
         final int type = ((Floxels.EventPopulationDestroyed)event).mType;
         if ( type == kMajorityType ) {
@@ -172,13 +158,16 @@ public class FloxelsStory extends Story {
     if ( mRestartTimer > 0.0f && mChangeTimer == 0.0f ) {
       mRestartTimer -= Env.TICK_TIME;
       if ( mRestartTimer <= 0.0f ) {
-        assert( mFloxels.numFloxels(kMajorityType) == mMajorityPopulation );
-        assert( mCursor == null );
-        //mCursor = new LaunchCursor(kMinorityPopulation, 
-        //                           kMinorityType, mFloxels);
-        mCursor = new Cursor(kMinorityPopulation, kMinorityType, mFloxels);
-        spriteManager.addSprite(mCursor);
-        mRestartTimer = 0.0f;
+        if ( mFloxels.numFloxels(kMajorityType) < 
+                           mMajorityPopulation + kMinorityPopulation ) {
+          growPopulation();
+          mRestartTimer = 0.1f;
+        } else {
+          assert( mCursor == null );
+          mCursor = new Cursor(kMinorityPopulation, kMinorityType, mFloxels);
+          spriteManager.addSprite(mCursor);
+          mRestartTimer = 0.0f;
+        }
       }
     }
 
@@ -197,8 +186,12 @@ public class FloxelsStory extends Story {
       }
       if ( changed ) {
         if ( mChanging ) {
-          Env.sounds().play(Sounds.MAZE_MORPH);
+          //Env.sounds().play(Sounds.MAZE_MORPH);
           mChanging = false;
+        }
+        if ( mFloxels.numFloxels(kMajorityType) < 
+                           mMajorityPopulation + kMinorityPopulation ) {
+          growPopulation();
         }
         //mBackground.updateImage();
         for ( Flow flow : mFlows ) prepareFlow(flow, mMaze);
@@ -208,7 +201,8 @@ public class FloxelsStory extends Story {
     if ( mIntroTimer > 0.0f ) {
       mIntroTimer -= Env.TICK_TIME;
       if ( mIntroTimer <= 0.0f ) {
-        mFloxels.releaseFloxels(0, mMajorityPopulation, 5.0f, 5.0f, 0.1f);
+        int total = mMajorityPopulation + kMinorityPopulation;
+        mFloxels.releaseFloxels(0, total, 5.0f, 5.0f, 0.1f);
         mRestartTimer = kRestartDelay;
         mIntroTimer = 0.0f;
         Env.sounds().play(Sounds.UNLEASH_BIG);
@@ -364,7 +358,7 @@ public class FloxelsStory extends Story {
 
     mMajorityPopulation = 0;
     for ( int level = 0 ; level <= mLevel ; level++ ) {
-      if      ( mMajorityPopulation ==  0 ) mMajorityPopulation =  400; //200;
+      if      ( mMajorityPopulation ==  0 ) mMajorityPopulation =  400;
       else if ( mMajorityPopulation < 300 ) mMajorityPopulation += 100;
       else if ( mMajorityPopulation < 400 ) mMajorityPopulation += 50;
       else if ( mMajorityPopulation < 600 ) mMajorityPopulation += 25;
@@ -419,9 +413,6 @@ public class FloxelsStory extends Story {
     
     mReversed = false;
     mChanging = false;
-    
-    //!!!
-    //spriteManager.addSprite(new Seeker(mMaze, mFloxels, mFlows[1]));
     
   } // prepareNewStory()
 
@@ -485,8 +476,6 @@ public class FloxelsStory extends Story {
   // reset the floxels to replay the level
   private void restartLevel(SpriteManager spriteManager) {
     
-    mFloxels.reclaimFloxels(kMinorityPopulation, kMajorityType);
-    
     spriteManager.removeSprite(mCursor);
     mCursor = null;
     mRestartTimer = kRestartDelay;
@@ -512,9 +501,9 @@ public class FloxelsStory extends Story {
     spriteManager.removeSprite(mCursor);
     mCursor = null;
     
-    final int excess = mFloxels.numFloxels(kMinorityType) 
-                       - mMajorityPopulation;
-    if ( excess > 0 ) mFloxels.reclaimFloxels(excess, kMinorityType);
+    //final int excess = mFloxels.numFloxels(kMinorityType) 
+    //                   - (mMajorityPopulation + kMinorityPopulation);
+    //if ( excess > 0 ) mFloxels.reclaimFloxels(excess, kMinorityType);
 
     switchPopulations(spriteManager);
     
@@ -524,13 +513,11 @@ public class FloxelsStory extends Story {
       if ( sp instanceof Bouncer) ((Bouncer)sp).disappear();
     }
 
-    //if ( (mLevel % 3) == 0 ) {
-    //  mMazeNum += 1;
-    //  Maze nextMaze = Mazes.get(mMazeNum);
-    //  mMaze.collectDifferences(nextMaze, mMazeDeltas);
-    //  mChanging = true;
-    //  mChangeTimer = kChangeFirstDelay;
-    //}
+    mMazeNum += 1;
+    Maze nextMaze = Mazes.get(mMazeNum);
+    mMaze.collectDifferences(nextMaze, mMazeDeltas);
+    mChanging = true;
+    mChangeTimer = kChangeFirstDelay;
 
     Env.sounds().play(Sounds.SUCCESS, 15);
     
@@ -556,5 +543,21 @@ public class FloxelsStory extends Story {
     }
     
   } // switchPopulations()
+
+  // add to the majority population while it is below its target 
+  private void growPopulation() {
+    
+    int delta = (mMajorityPopulation + kMinorityPopulation) 
+                - mFloxels.numFloxels(kMajorityType);
+    assert( delta > 0 );
+    
+    int num = ( delta >= 10 ) ? 5
+            : ( delta > 6 )   ? (delta/2)
+                              : delta;
+    float x = Env.randomFloat(0.1f, Env.numTilesX()-0.1f),
+          y = Env.randomFloat(0.1f, Env.numTilesY()-0.1f);
+    mFloxels.releaseFloxels(kMajorityType, num, x, y, 0.05f);
+    
+  } // growPopulation
   
 } // class FloxelsStory

@@ -33,6 +33,9 @@ public class Cursor extends Sprite implements SourceTerm {
   private static final float kPullRadius    = 0.5f,
                              kCaptureRadius = 0.1f;
 
+  // slight delay before the initial summons kicks in
+  private static final float kSummonDelay = 0.4f;
+  
   // how the floxels fill-up the cursor
   private static final int   kFloxelCrowdNumMax    = 200,
                              kFloxelCrowdNumDrawn  = 100;
@@ -54,9 +57,9 @@ public class Cursor extends Sprite implements SourceTerm {
   private Floxels mFloxels;
   
   // which population the cursor acts on
-  private int mFloxelType;
+  private final int mFloxelType;
   
-  // local floxel for painting
+  // local helper floxel to simplify painting
   private Floxel mPaintFloxel = null;
 
   // give special treatment when displaying the last captured floxel  
@@ -74,6 +77,11 @@ public class Cursor extends Sprite implements SourceTerm {
   private float mXPos,
                 mYPos;
 
+  // first operation of the cursor is to summon floxels
+  private final int mNumToSummon;
+  private boolean   mSummoning;
+  private float     mSummonTimer;
+  
   // number of captured floxels
   private int mNumCaptured;
   
@@ -90,7 +98,7 @@ public class Cursor extends Sprite implements SourceTerm {
   private Texture mTexture = null;
   
   // constructor
-  public Cursor(int numCaptured, int floxelType, Floxels floxels) {
+  public Cursor(int numToSummon, int floxelType, Floxels floxels) {
     
     super(kScreenLayer);
 
@@ -101,8 +109,12 @@ public class Cursor extends Sprite implements SourceTerm {
     
     mState = State.NOTHING;
 
-    assert( numCaptured >= 0 );
-    mNumCaptured = numCaptured;
+    assert( numToSummon >= 0 );
+    mNumToSummon = numToSummon;
+    mSummoning = ( mNumToSummon > 0 );
+    mSummonTimer = 0.0f;
+    
+    mNumCaptured = 0;
     
     mFocus = 0.0f;
     
@@ -159,6 +171,7 @@ public class Cursor extends Sprite implements SourceTerm {
     MouseMonitor.State state = Env.mouse().getState();
     final float x = (state.x - Env.gameOffsetX())/(float)Env.tileWidth(),
                 y = (state.y - Env.gameOffsetY())/(float)Env.tileWidth();
+    boolean button = state.b;
 
     if ( mState == State.LAUNCHING ) {
       if ( mNumCaptured > 0 ) {
@@ -172,22 +185,47 @@ public class Cursor extends Sprite implements SourceTerm {
       return;
     }
     
-    if ( x < 0 || x >= Env.numTilesX() || y < 0 || y >= Env.numTilesY() ) {
+    if ( x >= 0 && x < Env.numTilesX() && y >= 0 && y < Env.numTilesY() ) {
+      mXPos = x;
+      mYPos = y;
+    } else if ( mSummoning && mFloxels.numFloxels(mFloxelType) > 0 ) {
+      // keep the last position
+    } else {
       mState = State.NOTHING;
       mFocus = 0.0f;
+      mSummonTimer = 0.0f;
       return;
     }
-
-    mXPos = x;
-    mYPos = y;
     
-    if ( state.b ) {
+    if ( mSummoning && mState == State.CAPTURING ) {
+      if ( mNumCaptured == mNumToSummon ) {
+        assert( mFloxels.numFloxels(mFloxelType) == 0 );
+        mSummoning = false;
+      } else if ( mFloxels.numFloxels(mFloxelType) > 0 ) {
+        button = true;
+      }
+    }
+    
+    if ( button ) {
+      if ( mState == State.NOTHING ) {
+        if ( mSummoning ) {
+          mSummonTimer = kSummonDelay;
+        }
+      }
       mState = State.CAPTURING;
       int num = mFloxels.captureFloxels(mXPos, mYPos, 
                                         kPullRadius, kCaptureRadius,
                                         mFloxelType);
       mNumCaptured += num;
       if ( num > 0 ) Env.sounds().playCaptureSound(num);
+      if ( mSummoning && mSummonTimer > 0.0f ) {
+        mSummonTimer = Math.max(mSummonTimer-dt, 0.0f);
+        if ( mSummonTimer == 0.0f ) {
+          mFloxels.summonFloxels(mNumToSummon, mFloxelType);
+          Env.sounds().play(Sounds.SUMMON_A);
+          Env.sounds().play(Sounds.SUMMON_B, 6);
+        }
+      }
       if ( mFocus < 1.0f ) mFocus = Math.min(1.0f, mFocus+dt*kFocusRate);
     } else {
       if ( mState == State.CAPTURING ) {
