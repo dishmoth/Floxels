@@ -36,9 +36,10 @@ public class Env {
   static private boolean kDebugMode = true;
   
   // assorted helper objects
-  static private Random       kRandom;
-  static private MouseMonitor kMouseMonitor;
-  static private Sounds       kSounds;
+  static private Random        kRandom;
+  static private MouseMonitor  kMouseMonitor;
+  static private Sounds        kSounds;
+  static private FloxelPainter kPainter;
   
   // this sets up a global Env for the applet
   static public void initialize() {
@@ -46,7 +47,8 @@ public class Env {
     kRandom       = new Random();
     kMouseMonitor = new MouseMonitor();
     kSounds       = new Sounds();
-
+    kPainter      = new FloxelPainter(11); // = Env.tileWidth()*11.0f/58.0f
+    
   } // initialize()
 
   // whether debug messages are displayed
@@ -89,6 +91,9 @@ public class Env {
   // return reference to game audio
   static public Sounds sounds() { return kSounds; }
 
+  //
+  static public FloxelPainter painter() { return kPainter; }
+  
   // end the game, close the window (could be done better?)
   static public void exitGame() {
     

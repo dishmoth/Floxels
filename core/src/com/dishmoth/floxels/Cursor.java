@@ -291,6 +291,8 @@ public class Cursor extends Sprite implements SourceTerm {
     
     if ( mState == State.NOTHING ) return;
 
+    FloxelPainter painter = Env.painter();
+    
     // draw some floxels
     
     final float crowdRadius = floxelRadius();
@@ -313,7 +315,7 @@ public class Cursor extends Sprite implements SourceTerm {
         mPaintFloxel.mFace = (byte)Env.randomInt( Floxel.NUM_EXPRESSIONS );
       }
       
-      FloxelPainter.draw(batch, mPaintFloxel);
+      painter.draw(batch, mPaintFloxel);
     }
     
     // draw the circle

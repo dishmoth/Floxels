@@ -104,8 +104,6 @@ public class FloxelsStory extends Story {
   // prepare resources
   static public void initialize() {
 
-    FloxelPainter.initialize();
-    
   } // initialize()
 
   // constructor

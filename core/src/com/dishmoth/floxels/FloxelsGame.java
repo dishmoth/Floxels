@@ -62,13 +62,18 @@ public class FloxelsGame implements ApplicationListener {
 	// decide the number of tiles and the tile size
 	private void chooseTileDimensions(int width, int height) {
 	  
-    float aspect = Math.max(width,height)/(float)Math.min(width,height);
+    final float aspect = Math.max(width,height)/(float)Math.min(width,height);
 
+    final float aspect0 = 10.0f/10.0f,
+                aspect1 = 11.0f/9.0f,
+                aspect2 = 12.0f/8.0f;
+    final float weight  = 0.7f;
+    
     int nx, ny;
-    if ( aspect < 0.5*( 10.0/10 + 11.0/9 ) ) {
+    if ( aspect < (1-weight)*aspect0 + weight*aspect1 ) {
       nx = 10;
       ny = 10;
-    } else if ( aspect < 0.5*( 11.0/9 + 12.0/8 ) ) {
+    } else if ( aspect < (1-weight)*aspect1 + weight*aspect2 ) {
       nx = 11;
       ny = 9;
     } else {

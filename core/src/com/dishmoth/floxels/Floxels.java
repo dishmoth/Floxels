@@ -896,15 +896,17 @@ public class Floxels extends Sprite {
   @Override
   public void draw(SpriteBatch batch) {
     
+    FloxelPainter painter = Env.painter();
+    
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState == Floxel.State.UNUSED ||
            floxel.mState == Floxel.State.SPLATTED ) continue;
-      FloxelPainter.draw(batch, floxel);
+      painter.draw(batch, floxel);
     }
     
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState != Floxel.State.SPLATTED ) continue;
-      FloxelPainter.draw(batch, floxel);
+      painter.draw(batch, floxel);
     }
     
   } // Sprite.draw()
