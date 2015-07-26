@@ -47,7 +47,7 @@ public class Env {
     kRandom       = new Random();
     kMouseMonitor = new MouseMonitor();
     kSounds       = new Sounds();
-    kPainter      = new FloxelPainter(11); // = Env.tileWidth()*11.0f/58.0f
+    kPainter      = null;
     
   } // initialize()
 
@@ -68,13 +68,21 @@ public class Env {
     
   } // debug()
   
-  // return the size of the game area in tiles
+  // the size of the game area in tiles
   static public void setTilesXY(int x, int y) { kNumTilesX=x; kNumTilesY=y; }
   static public int numTilesX() { return kNumTilesX; }
   static public int numTilesY() { return kNumTilesY; }
   
-  // return the dimensions of a tile
-  static public void setTileWidth(int w) { kTileWidth = w; }
+  // the size of a tile (in pixels)
+  static public void setTileWidth(int w) {
+    kTileWidth = w;
+    final int floxelSize = Math.round( kTileWidth*11.0f/58.0f );
+    if ( kPainter != null && kPainter.targetSize() != floxelSize ) {
+      kPainter.dispose();
+      kPainter = null;
+    }
+    if ( kPainter == null ) kPainter = new FloxelPainter(floxelSize);
+  }
   static public int tileWidth() { return kTileWidth; }
 
   // return the size of the game area in pixels

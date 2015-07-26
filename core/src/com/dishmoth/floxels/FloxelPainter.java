@@ -251,6 +251,19 @@ public class FloxelPainter {
     
   } // colourCopyPixmap()
   
+  // release resources
+  public void dispose() {
+    
+    mFacesImage.dispose();
+    mSplatImage.dispose();
+    mPixmap.dispose();
+    mTexture.dispose();
+    
+  } // dispose()
+  
+  // pixel width of floxel
+  public int targetSize() { return mFacePixSize; }
+  
   // change the base floxel colour
   static void advanceColourIndex() {
     
