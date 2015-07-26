@@ -292,6 +292,7 @@ public class Cursor extends Sprite implements SourceTerm {
     if ( mState == State.NOTHING ) return;
 
     FloxelPainter painter = Env.painter();
+    int colour = mFloxels.floxelColour(mFloxelType);
     
     // draw some floxels
     
@@ -315,7 +316,7 @@ public class Cursor extends Sprite implements SourceTerm {
         mPaintFloxel.mFace = (byte)Env.randomInt( Floxel.NUM_EXPRESSIONS );
       }
       
-      painter.draw(batch, mPaintFloxel);
+      painter.draw(batch, mPaintFloxel, colour);
     }
     
     // draw the circle

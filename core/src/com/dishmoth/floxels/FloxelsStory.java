@@ -400,7 +400,8 @@ public class FloxelsStory extends Story {
     prepareNewRoom(spriteManager);
 
     setLevelDifficulty();
-
+    setFloxelColours();
+    
     mCursor = null;
     
     mIntroTimer = kIntroDelay;
@@ -499,10 +500,6 @@ public class FloxelsStory extends Story {
     spriteManager.removeSprite(mCursor);
     mCursor = null;
     
-    //final int excess = mFloxels.numFloxels(kMinorityType) 
-    //                   - (mMajorityPopulation + kMinorityPopulation);
-    //if ( excess > 0 ) mFloxels.reclaimFloxels(excess, kMinorityType);
-
     switchPopulations(spriteManager);
     
     mRestartTimer = kRestartLongDelay;
@@ -525,8 +522,7 @@ public class FloxelsStory extends Story {
   private void switchPopulations(SpriteManager spriteManager) {
     
     mFloxels.switchFloxelTypes();
-    
-    FloxelPainter.advanceColourIndex();
+    setFloxelColours();
     
     for ( int type = 0 ; type < kNumTypes ; type++ ) {
       mVentControls[type].switchFloxelTypes();
@@ -542,6 +538,16 @@ public class FloxelsStory extends Story {
     
   } // switchPopulations()
 
+  // define the colours for the two populations
+  private void setFloxelColours() {
+    
+    mFloxels.setFloxelColour(kMajorityType, 
+                             mLevel % FloxelPainter.numColours());
+    mFloxels.setFloxelColour(kMinorityType, 
+                             (mLevel+1) % FloxelPainter.numColours());
+    
+  } // setFloxelColours()
+  
   // add to the majority population while it is below its target 
   private void growPopulation() {
     

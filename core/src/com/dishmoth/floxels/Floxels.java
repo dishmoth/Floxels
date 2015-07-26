@@ -88,6 +88,9 @@ public class Floxels extends Sprite {
   // size of each population
   private int mNumActiveFloxels[];
   
+  // colours of the populations
+  private int mTypeColours[];
+  
   // size of the base grid
   private final int mGridXSize,
                     mGridYSize;
@@ -147,6 +150,9 @@ public class Floxels extends Sprite {
     mNumActiveFloxels = new int[mNumFloxelTypes];
     Arrays.fill(mNumActiveFloxels, 0);
     
+    mTypeColours = new int[mNumFloxelTypes];
+    Arrays.fill(mTypeColours, 0);
+    
     mFloxelCounts = new int[mNumFloxelTypes][mGridYSize][mGridXSize];
     
     mClusters = new Clusters(mFlows[0], 2, kNumFloxels);
@@ -175,6 +181,23 @@ public class Floxels extends Sprite {
     return mNumActiveFloxels[type]; 
     
   } // numFloxels()
+
+  // colours of the different floxel types 
+  public int floxelColour(int type) {
+    
+    assert( type >= 0 && type < mTypeColours.length );
+    return mTypeColours[type]; 
+    
+  } // floxelColour()
+  
+  // define the colour for a floxel type 
+  public void setFloxelColour(int type, int colour) {
+    
+    assert( type >= 0 && type < mTypeColours.length );
+    assert( colour >= 0 && colour < FloxelPainter.numColours() );
+    mTypeColours[type] = colour;
+    
+  } // setFloxelColour()
   
   // access (read-only) to the floxel count per grid square
   public int[][] countFloxels(int type) { 
@@ -901,12 +924,12 @@ public class Floxels extends Sprite {
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState == Floxel.State.UNUSED ||
            floxel.mState == Floxel.State.SPLATTED ) continue;
-      painter.draw(batch, floxel);
+      painter.draw(batch, floxel, mTypeColours[floxel.mType]);
     }
     
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState != Floxel.State.SPLATTED ) continue;
-      painter.draw(batch, floxel);
+      painter.draw(batch, floxel, mTypeColours[floxel.mType]);
     }
     
   } // Sprite.draw()

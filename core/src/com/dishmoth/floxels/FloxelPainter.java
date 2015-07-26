@@ -77,9 +77,6 @@ public class FloxelPainter {
   // texture holding packed floxel images
   private Texture mTexture;
   
-  // colour of the first floxel type
-  static private int kColourOffset = 0;
-  
   // number of different colour sets
   public static int numColours() { return kColours.length; }
   
@@ -267,18 +264,9 @@ public class FloxelPainter {
   // pixel width of floxel
   public int targetSize() { return mFacePixSize; }
   
-  // change the base floxel colour
-  static void advanceColourIndex() {
-    
-    kColourOffset = ( kColourOffset + 1 ) % kColours.length;
-    
-  } // advanceColourIndex()
-  
   // display a floxel
-  void draw(SpriteBatch batch, Floxel floxel) {
+  void draw(SpriteBatch batch, Floxel floxel, int colour) {
 
-    final int colour = (floxel.mType + kColourOffset) % kColours.length;
-    
     final float xScale = Env.gameWidth() / (float)Env.numTilesX(),
                 yScale = Env.gameHeight() / (float)Env.numTilesY();
 
