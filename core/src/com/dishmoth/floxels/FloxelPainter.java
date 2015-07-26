@@ -6,14 +6,6 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.geom.Path2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import javax.imageio.ImageIO;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
@@ -48,12 +40,9 @@ public class FloxelPainter {
   static private final String kFacesImageFile       = "Faces";
   
   // images of floxels when splatted
-  static private final String kSplatImageFile  = "Splat.png";
-  static private final int    kSplatImageSize  = 19,
-                              kSplatStarPoints = 8;
-  static private final float  kSplatMaxRadius  = 9.0f,
-                              kSplatMinRadius  = 6.0f;
-  static private final float  kSplatBlackness  = 0.2f;
+  static private final String kSplatImageFile  = "Splat";
+  static private final int    kSplatFileMinNum = 8,
+                              kSplatFileMaxNum = 22;
 
   // different facial expressions for floxels (uncoloured)
   private final Pixmap mFacesImage;
@@ -116,10 +105,13 @@ public class FloxelPainter {
     } else {
       mFacesImage = null;
     }
-    
-    mSplatImage = new Pixmap( Gdx.files.internal(kSplatImageFile) );
+
+    final int splatSize = Math.max(kSplatFileMinNum, 
+                                   Math.min(kSplatFileMaxNum, targetSize));
+    final String splatFname = kSplatImageFile + splatSize + ".png";
+    mSplatImage = new Pixmap( Gdx.files.internal(splatFname) );
     assert( mSplatImage.getWidth() == mSplatImage.getHeight() );
-    
+
     final int totalFaces = kColours.length * Floxel.NUM_SHADES
                            * Floxel.NUM_NORMAL_FACES;
     final int faceSizePadded = mFaceTexSize + 2*mFaceTexPadding;
@@ -130,13 +122,15 @@ public class FloxelPainter {
     mSplatBaseY = faceSizePadded*mNumFaceRows;
     assert( (mSplatImage.getWidth()+2)*kColours.length <= textureWidth );
     
-    mSplatScale = mFacePixSize/(float)mFaceTexSize;
+    mSplatScale = targetSize/(float)splatSize;
     
     final int textureMinHeight = mSplatBaseY + mSplatImage.getHeight()+2;
     final int textureHeight = MathUtils.nextPowerOfTwo(textureMinHeight); 
     mPixmap = new Pixmap(textureWidth, textureHeight, Format.RGBA8888);
     
     float edgeWidth = (mFaceTexSize < 13) ? 1.0f : mFaceTexSize/11.0f;
+    
+    Pixmap.setBlending(Pixmap.Blending.SourceOver);
     
     int ix = 0,
         iy = 0;
@@ -154,11 +148,15 @@ public class FloxelPainter {
       }
     }
     
+    Pixmap.setBlending(Pixmap.Blending.None);
+    
     for ( int iCol = 0 ; iCol < kColours.length ; iCol++ ) {
       int x = iCol*(mSplatImage.getWidth()+2);
       prepareSplat(iCol, x+1, mSplatBaseY+1);
     }
 
+    Pixmap.setBlending(Pixmap.Blending.SourceOver);
+    
     //PixmapIO.writePNG(Gdx.files.external("pixmap.png"), mPixmap);
     
     mTexture = new Texture( mPixmap, false );
@@ -311,66 +309,4 @@ public class FloxelPainter {
     
   } // draw()
 
-  /*
-  // write an image file for a splatted face
-  static private void generateSplatImage() {
-
-    Path2D splatShapes[] = new Path2D[2];
-    
-    for ( int version = 0 ; version <= 1 ; version++ ) {
-      final float inset = (version==0) ? 0.0f : 2.0f;
-      
-      Path2D star = new Path2D.Float();    
-      for ( int k = 0 ; k < kSplatStarPoints ; k++ ) {
-        final float theta1 = (2*k+0.5f)*(float)Math.PI/kSplatStarPoints,
-                    theta2 = (2*k+1.5f)*(float)Math.PI/kSplatStarPoints;
-        final float r1 = kSplatMaxRadius - inset,
-                    r2 = kSplatMinRadius - inset;
-        final float x1 = r1*(float)Math.cos(theta1),
-                    y1 = r1*(float)Math.sin(theta1),
-                    x2 = r2*(float)Math.cos(theta2),
-                    y2 = r2*(float)Math.sin(theta2);
-  
-        if ( k == 0 ) star.moveTo(x1, y1);
-        else          star.lineTo(x1, y1);
-        star.lineTo(x2, y2);
-      }
-      star.closePath();
-
-      splatShapes[version] = star;
-    }
-
-    Color edgeColour = new Color(255, 255, 255); 
-    
-    final int fill = Math.round(255*kSplatBlackness);
-    Color fillColour = new Color(fill, fill, fill); 
-
-    Color blankColour = new Color(255,255,255,0);
-    
-    BufferedImage im = new BufferedImage(kSplatImageSize, kSplatImageSize,
-                                         BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2 = im.createGraphics();
-    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-    g2.setBackground(blankColour);
-    g2.clearRect(0, 0, kSplatImageSize, kSplatImageSize);
-    g2.translate(0.5f*kSplatImageSize, 0.5f*kSplatImageSize);
-
-    g2.setColor(edgeColour);
-    g2.fill(splatShapes[0]);
-    g2.setColor(fillColour);
-    g2.fill(splatShapes[1]);
-
-    g2.dispose();
-  
-    try {
-      ImageIO.write(im, "png", new File(kSplatImageFile));
-      Env.debug("Created image file: " + kSplatImageFile);
-    } catch (Exception ex) {
-      Env.debug(ex.getMessage());
-    }
-    
-  } // prepareSplatImage()
-  */
-  
 } // class FloxelPainter
