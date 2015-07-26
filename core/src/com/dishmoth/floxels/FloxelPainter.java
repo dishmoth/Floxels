@@ -130,8 +130,6 @@ public class FloxelPainter {
     
     float edgeWidth = (mFaceTexSize < 13) ? 1.0f : mFaceTexSize/11.0f;
     
-    Pixmap.setBlending(Pixmap.Blending.SourceOver);
-    
     int ix = 0,
         iy = 0;
     for ( int iCol = 0 ; iCol < kColours.length ; iCol++ ) {
@@ -148,15 +146,11 @@ public class FloxelPainter {
       }
     }
     
-    Pixmap.setBlending(Pixmap.Blending.None);
-    
     for ( int iCol = 0 ; iCol < kColours.length ; iCol++ ) {
       int x = iCol*(mSplatImage.getWidth()+2);
       prepareSplat(iCol, x+1, mSplatBaseY+1);
     }
 
-    Pixmap.setBlending(Pixmap.Blending.SourceOver);
-    
     //PixmapIO.writePNG(Gdx.files.external("pixmap.png"), mPixmap);
     
     mTexture = new Texture( mPixmap, false );
@@ -219,17 +213,21 @@ public class FloxelPainter {
   // create the pixels for one splat
   private void prepareSplat(int colInd, int x, int y) {
     
+    Pixmap.setBlending(Pixmap.Blending.None);
+    
     mPixmap.setColor(1.0f, 1.0f, 1.0f, 0.0f);
     mPixmap.fillRectangle(x-1, y-1, 
                          mSplatImage.getWidth()+2,
                          mSplatImage.getHeight()+2);
-    
+
     colourCopyPixmap(mPixmap,
                      x, y,
                      mSplatImage, 
                      kColours[colInd][0]/255.0f,
                      kColours[colInd][1]/255.0f,
                      kColours[colInd][2]/255.0f);
+    
+    Pixmap.setBlending(Pixmap.Blending.SourceOver);
     
   } // prepareSplat()
   
@@ -245,6 +243,11 @@ public class FloxelPainter {
             g = Math.round( ((rgba>>16)&0xFF) * g0 ),
             b = Math.round( ((rgba>> 8)&0xFF) * b0 ),
             a = (rgba&0xFF);
+        if ( a == 0 ) {
+          r = Math.round(255*r0);
+          g = Math.round(255*g0);
+          b = Math.round(255*b0);
+        }
         pixmap.drawPixel( x0+ix, y0+iy, ((r<<24)|(g<<16)|(b<<8)|a) );
       }
     }
