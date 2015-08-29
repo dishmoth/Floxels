@@ -8,7 +8,6 @@ package com.dishmoth.floxels;
 
 import java.util.LinkedList;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -47,7 +46,7 @@ public class Cursor extends Sprite implements SourceTerm {
                              kFinalFaceMaxTime = 1.0f;
   
   // size of the displayed cursor
-  private static final float kCursorRadius = 0.5f;
+  private static final float kCursorRadius = 0.44f;
 
   // how the cursor animates in and out of focus
   private static final float kFocusRate    = 6.0f;
@@ -291,7 +290,7 @@ public class Cursor extends Sprite implements SourceTerm {
     
     if ( mState == State.NOTHING ) return;
 
-    FloxelPainter painter = Env.painter();
+    FloxelPainter painter = Env.painter().floxelPainter();
     int colour = mFloxels.floxelColour(mFloxelType);
     
     // draw some floxels
@@ -322,18 +321,8 @@ public class Cursor extends Sprite implements SourceTerm {
     // draw the circle
     
     float scale = 1.0f + (kUnfocusScale-1.0f)*(1.0f-mFocus);
-
-    float x = Env.gameOffsetX() + mXPos*Env.tileWidth(),
-          y = Env.gameOffsetY() + mYPos*Env.tileWidth();
-    float size = scale*2.0f*kCursorRadius*Env.tileWidth();
-
-    Color oldColor = batch.getColor();
-    batch.setColor(1.0f, 1.0f, 1.0f, mFocus);
-    
-    batch.draw(mTexture, x-size/2, y-size/2, size, size);
-    
-    batch.setColor(oldColor);
-
+    HoopPainter hoopPainter = Env.painter().hoopPainter();
+    hoopPainter.drawHoop(batch, mXPos, mYPos, scale*kCursorRadius, mFocus);
     
   } // Sprite.draw()
 

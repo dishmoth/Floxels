@@ -919,7 +919,7 @@ public class Floxels extends Sprite {
   @Override
   public void draw(SpriteBatch batch) {
     
-    FloxelPainter painter = Env.painter();
+    FloxelPainter painter = Env.painter().floxelPainter();
     
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState == Floxel.State.UNUSED ||

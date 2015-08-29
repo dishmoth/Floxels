@@ -11,9 +11,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.MathUtils;
 
 // class for drawing different types of floxels
 public class FloxelPainter {
@@ -44,9 +42,6 @@ public class FloxelPainter {
   static private final int    kSplatFileMinNum = 8,
                               kSplatFileMaxNum = 22;
 
-  // different facial expressions for floxels (uncoloured)
-  private final Pixmap mFacesImage;
-  
   // size of a floxel face image in pixels and texels
   private final int mFacePixSize,
                     mFaceTexSize;
@@ -54,60 +49,55 @@ public class FloxelPainter {
   // number of texels int border around face image to avoid bleeding if scaled
   private final int mFaceTexPadding;
   
-  // basic image for splatted floxels (uncoloured)
-  private final Pixmap mSplatImage;
+  // size of a splat image in pixels and texels
+  private final int mSplatPixSize,
+                    mSplatTexSize; 
   
-  // size of the on-screen splat compared to the texture data
-  private final float mSplatScale; 
-  
-  // how the images are packed in the texture
+  // how the floxel images are packed in the pixmap/texture
   private final int mFacesPerRow,
-                    mNumFaceRows,
-                    mSplatBaseY;
-  
-  // size of a floxel image in final texture units
-  private final float kTextureFaceSizeU,
-                      kTextureFaceSizeV,
-                      kTextureFacePadU,
-                      kTextureFacePadV;
+                    mNumFaceRows;
   
   // raw image data
-  private Pixmap mPixmap;
+  private Pixmap mFloxelPixmap,
+                 mSplatPixmap;
   
-  // texture holding packed floxel images
+  // where the floxel images are in the final texture (in texture units)
+  private float mTextureFaceU,
+                mTextureFaceV,
+                mTextureFaceSizeU,
+                mTextureFaceSizeV,
+                mTextureFacePadU,
+                mTextureFacePadV;
+  
+  // where the splat images are in the final texture (in texture units)
+  private float mTextureSplatU,
+                mTextureSplatV,
+                mTextureSplatSizeU,
+                mTextureSplatSizeV,
+                mTextureSplatShiftU;
+  
+  // reference to the texture data
   private Texture mTexture;
   
   // number of different colour sets
   public static int numColours() { return kColours.length; }
   
-  // Screen 2048x1536 => tiles 11x9  => tile 166 => floxel 31
-  // Screen 1900x1200 => tiles 12x8  => tile 150 => floxel 28
-  // Screen 1280x800  => tiles 12x8  => tile 100 => floxel 19
-  // Screen 1280x720  => tiles 12x8  => tile 90  => floxel 17
-  // Screen 600x600   => tiles 10x10 => tile 60  => floxel 11
-  // Screen 480x320   => tiles 12x8  => tile 40  => floxel 8
-  
   // constructor
   public FloxelPainter(int targetSize) {
 
+    // prepare the faces
+    
     mFacePixSize = targetSize;
     mFaceTexSize = Math.min(mFacePixSize, kFacesFileMaxNum);
     mFaceTexPadding = (mFacePixSize > mFaceTexSize) ? 1 : 0;
 
+    Pixmap facesImage = null;
     if ( mFaceTexSize >= kFacesFileMinNum ) {
       String fname = kFacesImageFile + mFaceTexSize + ".png";
-      mFacesImage = new Pixmap( Gdx.files.internal(fname) );
-      assert( mFacesImage.getHeight() == mFaceTexSize );
-      assert( mFacesImage.getWidth() == 7*mFaceTexSize );
-    } else {
-      mFacesImage = null;
+      facesImage = new Pixmap( Gdx.files.internal(fname) );
+      assert( facesImage.getHeight() == mFaceTexSize );
+      assert( facesImage.getWidth() == 7*mFaceTexSize );
     }
-
-    final int splatSize = Math.max(kSplatFileMinNum, 
-                                   Math.min(kSplatFileMaxNum, targetSize));
-    final String splatFname = kSplatImageFile + splatSize + ".png";
-    mSplatImage = new Pixmap( Gdx.files.internal(splatFname) );
-    assert( mSplatImage.getWidth() == mSplatImage.getHeight() );
 
     final int totalFaces = kColours.length * Floxel.NUM_SHADES
                            * Floxel.NUM_NORMAL_FACES;
@@ -116,14 +106,9 @@ public class FloxelPainter {
     mFacesPerRow = textureWidth/faceSizePadded;
     mNumFaceRows = (int)Math.ceil(totalFaces/(float)mFacesPerRow);
 
-    mSplatBaseY = faceSizePadded*mNumFaceRows;
-    assert( (mSplatImage.getWidth()+2)*kColours.length <= textureWidth );
-    
-    mSplatScale = targetSize/(float)splatSize;
-    
-    final int textureMinHeight = mSplatBaseY + mSplatImage.getHeight()+2;
-    final int textureHeight = MathUtils.nextPowerOfTwo(textureMinHeight); 
-    mPixmap = new Pixmap(textureWidth, textureHeight, Format.RGBA8888);
+    mFloxelPixmap = new Pixmap(mFacesPerRow*faceSizePadded, 
+                               mNumFaceRows*faceSizePadded, 
+                               Format.RGBA8888);
     
     float edgeWidth = (mFaceTexSize < 13) ? 1.0f : mFaceTexSize/11.0f;
     
@@ -134,7 +119,7 @@ public class FloxelPainter {
         for ( int iFace = 0 ; iFace < Floxel.NUM_NORMAL_FACES ; iFace++ ) {
           prepareFace(iCol, iShade, iFace, 
                       ix*faceSizePadded, iy*faceSizePadded,
-                      edgeWidth);
+                      edgeWidth, facesImage);
           if ( ++ix >= mFacesPerRow ) {
             ix = 0;
             iy += 1;
@@ -142,27 +127,39 @@ public class FloxelPainter {
         }
       }
     }
+
+    if ( facesImage != null ) facesImage.dispose();
+    
+    // prepare the splats
+    
+    int splatSize = Math.max(kSplatFileMinNum, 
+                             Math.min(kSplatFileMaxNum, targetSize));
+    final String splatFname = kSplatImageFile + splatSize + ".png";
+    Pixmap splatImage = new Pixmap( Gdx.files.internal(splatFname) );
+    assert( splatImage.getWidth() == splatImage.getHeight() );
+
+    mSplatTexSize = splatImage.getHeight();
+    mSplatPixSize = Math.round(mSplatTexSize*targetSize/(float)splatSize);
+    
+    mSplatPixmap = new Pixmap(kColours.length*(mSplatTexSize+2), 
+                              (mSplatTexSize+2), 
+                              Format.RGBA8888);
     
     for ( int iCol = 0 ; iCol < kColours.length ; iCol++ ) {
-      int x = iCol*(mSplatImage.getWidth()+2);
-      prepareSplat(iCol, x+1, mSplatBaseY+1);
+      int x = iCol*(mSplatTexSize+2);
+      prepareSplat(iCol, x+1, 1, splatImage);
     }
 
+    splatImage.dispose();
+
     //PixmapIO.writePNG(Gdx.files.external("pixmap.png"), mPixmap);
-    
-    mTexture = new Texture( mPixmap, false );
-    mTexture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
-    
-    kTextureFaceSizeU = faceSizePadded/(float)mPixmap.getWidth();
-    kTextureFaceSizeV = faceSizePadded/(float)mPixmap.getHeight();
-    kTextureFacePadU = mFaceTexPadding/(float)mPixmap.getWidth();
-    kTextureFacePadV = mFaceTexPadding/(float)mPixmap.getWidth();
-    
+
   } // constructor
 
   // create the pixels for one floxel face, including padding
   private void prepareFace(int colInd, int shadeInd, int faceInd,
-                           int x, int y, float edgeWidth) {
+                           int x, int y, float edgeWidth,
+                           Pixmap facesImage) {
     
     float r = kColours[colInd][0]/255.0f,
           g = kColours[colInd][1]/255.0f,
@@ -183,48 +180,49 @@ public class FloxelPainter {
     final int x1 = x + mFaceTexPadding,
               y1 = y + mFaceTexPadding;
 
-    mPixmap.setColor(rE, gE, bE, 1.0f);
-    mPixmap.fillRectangle(x, y, faceSizePadded, faceSizePadded);
+    mFloxelPixmap.setColor(rE, gE, bE, 1.0f);
+    mFloxelPixmap.fillRectangle(x, y, faceSizePadded, faceSizePadded);
 
     int edge = (int)edgeWidth;
-    mPixmap.setColor(rF, gF, bF, 1.0f);
-    mPixmap.fillRectangle(x1+edge, y1+edge, 
-                          mFaceTexSize-2*edge, mFaceTexSize-2*edge);
+    mFloxelPixmap.setColor(rF, gF, bF, 1.0f);
+    mFloxelPixmap.fillRectangle(x1+edge, y1+edge, 
+                                mFaceTexSize-2*edge, mFaceTexSize-2*edge);
     
     if ( edge < edgeWidth ) {
       float e = edgeWidth - edge;
-      mPixmap.setColor((1-e)*rF+e*rE, (1-e)*gF+e*gE, (1-e)*bF+e*bE, 1.0f);
-      mPixmap.drawRectangle(x1+edge, y1+edge, 
-                            mFaceTexSize-2*edge, mFaceTexSize-2*edge);
+      mFloxelPixmap.setColor((1-e)*rF+e*rE, (1-e)*gF+e*gE, (1-e)*bF+e*bE, 1.0f);
+      mFloxelPixmap.drawRectangle(x1+edge, y1+edge, 
+                                  mFaceTexSize-2*edge, mFaceTexSize-2*edge);
     }
     
-    if ( mFacesImage != null ) {
-      final int srcSize = mFacesImage.getHeight();
-      mPixmap.drawPixmap(mFacesImage,
-                         faceInd*srcSize, 0, srcSize, srcSize,
-                         x1, y1, mFaceTexSize, mFaceTexSize);
+    if ( facesImage != null ) {
+      final int srcSize = facesImage.getHeight();
+      mFloxelPixmap.drawPixmap(facesImage,
+                               faceInd*srcSize, 0, srcSize, srcSize,
+                               x1, y1, mFaceTexSize, mFaceTexSize);
     }
     
   } // prepareFace()
   
   // create the pixels for one splat
-  private void prepareSplat(int colInd, int x, int y) {
+  private void prepareSplat(int colInd, int x, int y, Pixmap splatImage) {
     
+    Pixmap.Blending oldMode = Pixmap.getBlending();
     Pixmap.setBlending(Pixmap.Blending.None);
     
-    mPixmap.setColor(1.0f, 1.0f, 1.0f, 0.0f);
-    mPixmap.fillRectangle(x-1, y-1, 
-                         mSplatImage.getWidth()+2,
-                         mSplatImage.getHeight()+2);
+    mSplatPixmap.setColor(1.0f, 1.0f, 1.0f, 0.0f);
+    mSplatPixmap.fillRectangle(x-1, y-1, 
+                               splatImage.getWidth()+2,
+                               splatImage.getHeight()+2);
 
-    colourCopyPixmap(mPixmap,
+    colourCopyPixmap(mSplatPixmap,
                      x, y,
-                     mSplatImage, 
+                     splatImage, 
                      kColours[colInd][0]/255.0f,
                      kColours[colInd][1]/255.0f,
                      kColours[colInd][2]/255.0f);
     
-    Pixmap.setBlending(Pixmap.Blending.SourceOver);
+    Pixmap.setBlending(oldMode);
     
   } // prepareSplat()
   
@@ -251,18 +249,48 @@ public class FloxelPainter {
     
   } // colourCopyPixmap()
   
+  // access to the image data
+  public Pixmap floxelPixmap() { return mFloxelPixmap; }
+  public Pixmap splatPixmap()  { return mSplatPixmap; }
+  
   // release resources
   public void dispose() {
     
-    mFacesImage.dispose();
-    mSplatImage.dispose();
-    mPixmap.dispose();
-    mTexture.dispose();
+    mFloxelPixmap.dispose();
+    mSplatPixmap.dispose();
     
   } // dispose()
   
   // pixel width of floxel
   public int targetSize() { return mFacePixSize; }
+  
+  // update now that the pixmaps have been embedded in a texture
+  public void setTexture(Texture texture, 
+                         int xFloxels, int yFloxels,
+                         int xSplats,  int ySplats) {
+    
+    assert( mTexture == null );
+    mTexture = texture;
+    
+    mTextureFaceU = xFloxels/(float)mTexture.getWidth();
+    mTextureFaceV = yFloxels/(float)mTexture.getHeight();
+
+    final int faceSizePadded = mFaceTexSize + 2*mFaceTexPadding;
+    mTextureFaceSizeU = faceSizePadded/(float)mTexture.getWidth();
+    mTextureFaceSizeV = faceSizePadded/(float)mTexture.getHeight();
+    
+    mTextureFacePadU = mFaceTexPadding/(float)mTexture.getWidth();
+    mTextureFacePadV = mFaceTexPadding/(float)mTexture.getWidth();
+        
+    mTextureSplatU = (xSplats+1)/(float)mTexture.getWidth();
+    mTextureSplatV = (ySplats+1)/(float)mTexture.getHeight();
+    
+    mTextureSplatSizeU = mSplatTexSize/(float)mTexture.getWidth();
+    mTextureSplatSizeV = mSplatTexSize/(float)mTexture.getHeight();
+
+    mTextureSplatShiftU = (mSplatTexSize+2)/(float)mTexture.getWidth();
+    
+  } // setTexure()
   
   // display a floxel
   void draw(SpriteBatch batch, Floxel floxel, int colour) {
@@ -285,32 +313,27 @@ public class FloxelPainter {
       batch.draw( mTexture,
                   x-mFacePixSize/2, y-mFacePixSize/2, 
                   mFacePixSize, mFacePixSize,
-                  iu*kTextureFaceSizeU + kTextureFacePadU,
-                  (iv+1)*kTextureFaceSizeV - kTextureFacePadV, 
-                  (iu+1)*kTextureFaceSizeU - kTextureFacePadU, 
-                  iv*kTextureFaceSizeV + kTextureFacePadV );
+                  mTextureFaceU + iu*mTextureFaceSizeU + mTextureFacePadU,
+                  mTextureFaceV + (iv+1)*mTextureFaceSizeV - mTextureFacePadV, 
+                  mTextureFaceU + (iu+1)*mTextureFaceSizeU - mTextureFacePadU, 
+                  mTextureFaceV + iv*mTextureFaceSizeV + mTextureFacePadV );
       
     } else {
 
       assert( floxel.mFace == Floxel.SPLAT_FACE );
       
-      final int texSize = mSplatImage.getWidth(),
-                pixSize = Math.round( texSize * mSplatScale );
-      
-      int iu0 = colour*(texSize+2) + 1,
-          iu1 = iu0 + texSize,
-          iv0 = mSplatBaseY + 1,
-          iv1 = iv0 + texSize;
+      final float u0 = mTextureSplatU + colour*mTextureSplatShiftU,
+                  u1 = u0 + mTextureSplatSizeU,
+                  v0 = mTextureSplatV,
+                  v1 = v0 + mTextureSplatSizeV;
       
       batch.draw( mTexture,
-                  x-pixSize/2, y-pixSize/2, pixSize, pixSize,
-                  iu0/(float)mTexture.getWidth(),
-                  iv1/(float)mTexture.getHeight(), 
-                  iu1/(float)mTexture.getWidth(),
-                  iv0/(float)mTexture.getHeight() );
+                  x-mSplatPixSize/2, y-mSplatPixSize/2,
+                  mSplatPixSize, mSplatPixSize,
+                  u0, v1, u1, v0 );
       
     }
     
   } // draw()
-
+  
 } // class FloxelPainter

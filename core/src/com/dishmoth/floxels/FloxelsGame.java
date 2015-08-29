@@ -46,7 +46,7 @@ public class FloxelsGame implements ApplicationListener {
     mCamera.translate(width/2.0f, height/2.0f);
     mCamera.update();
     
-    mSpriteBatch = new SpriteBatch();
+    mSpriteBatch = new SpriteBatch(1500);
     mSpriteBatch.setProjectionMatrix(mCamera.combined);
 
     chooseTileDimensions(width, height);

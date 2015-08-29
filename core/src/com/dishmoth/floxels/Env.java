@@ -36,10 +36,10 @@ public class Env {
   static private boolean kDebugMode = true;
   
   // assorted helper objects
-  static private Random        kRandom;
-  static private MouseMonitor  kMouseMonitor;
-  static private Sounds        kSounds;
-  static private FloxelPainter kPainter;
+  static private Random       kRandom;
+  static private MouseMonitor kMouseMonitor;
+  static private Sounds       kSounds;
+  static private Painter      kPainter;
   
   // this sets up a global Env for the applet
   static public void initialize() {
@@ -47,7 +47,7 @@ public class Env {
     kRandom       = new Random();
     kMouseMonitor = new MouseMonitor();
     kSounds       = new Sounds();
-    kPainter      = null;
+    kPainter      = new Painter();
     
   } // initialize()
 
@@ -76,12 +76,7 @@ public class Env {
   // the size of a tile (in pixels)
   static public void setTileWidth(int w) {
     kTileWidth = w;
-    final int floxelSize = Math.round( kTileWidth*11.0f/58.0f );
-    if ( kPainter != null && kPainter.targetSize() != floxelSize ) {
-      kPainter.dispose();
-      kPainter = null;
-    }
-    if ( kPainter == null ) kPainter = new FloxelPainter(floxelSize);
+    kPainter.prepare(w);
   }
   static public int tileWidth() { return kTileWidth; }
 
@@ -100,7 +95,7 @@ public class Env {
   static public Sounds sounds() { return kSounds; }
 
   //
-  static public FloxelPainter painter() { return kPainter; }
+  static public Painter painter() { return kPainter; }
   
   // end the game, close the window (could be done better?)
   static public void exitGame() {

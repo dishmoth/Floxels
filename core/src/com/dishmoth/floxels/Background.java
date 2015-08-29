@@ -6,11 +6,6 @@
 
 package com.dishmoth.floxels;
 
-//import java.awt.Color;
-//import java.awt.Graphics2D;
-//import java.awt.image.BufferedImage;
-//import java.awt.image.DataBufferInt;
-//import java.awt.image.WritableRaster;
 import java.util.LinkedList;
 
 import com.badlogic.gdx.graphics.Pixmap;
@@ -55,7 +50,6 @@ public class Background extends Sprite {
     mMaze = maze;
     
     if ( kNoiseImage == null ) makeNoise();
-//    updateImage();
     
   } // constructor
 
@@ -127,7 +121,7 @@ public class Background extends Sprite {
                0.0f, 0.0f,
                kNoiseRepeats, kNoiseRepeats);
 
-    MazePainter.draw(batch, mMaze);
+    Env.painter().mazePainter().draw(batch, mMaze);
     
   } // Sprite.draw()
   
