@@ -8,8 +8,6 @@ package com.dishmoth.floxels;
 
 import java.util.LinkedList;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // the player's cursor, for catching and releasing floxels 
@@ -25,7 +23,6 @@ public class Cursor extends Sprite implements SourceTerm {
   // how strongly other floxels avoid the cursor position
   private static final float kRepulseStrength    = 2.0f,
                              kRepulseStrengthMax = 30.0f;
-  private static final float kLaunchRepulseTime  = 0.8f;
   private static final int   kLaunchRepulseNum   = 100;
   
   // drag floxels into the cursor and capture them
@@ -50,7 +47,8 @@ public class Cursor extends Sprite implements SourceTerm {
 
   // how the cursor animates in and out of focus
   private static final float kFocusRate    = 6.0f;
-  private static final float kUnfocusScale = 3.0f;
+  private static final float kUnfocusScale = 3.0f,
+                             kUnfocusAlpha = 0.1f;
   
   // reference to the floxels
   private Floxels mFloxels;
@@ -87,14 +85,8 @@ public class Cursor extends Sprite implements SourceTerm {
   // transition state (0.0 => vanished, 1.0 => active) 
   private float mFocus;
 
-  // time during which launch repulsion is applied
-  private float mLaunchTimer;
-  
   // how repulsive the launch is
   private float mLaunchRepulseStrength;
-  
-  // ???
-  private Texture mTexture = null;
   
   // constructor
   public Cursor(int numToSummon, int floxelType, Floxels floxels) {
@@ -117,7 +109,6 @@ public class Cursor extends Sprite implements SourceTerm {
     
     mFocus = 0.0f;
     
-    mLaunchTimer = 0.0f;
     mLaunchRepulseStrength = 0;
     
     mPaintFloxel = new Floxel();
@@ -126,9 +117,6 @@ public class Cursor extends Sprite implements SourceTerm {
 
     mFinalFace = (byte)Env.randomInt( Floxel.NUM_EXPRESSIONS );
     mFinalShade = (byte)Env.randomInt( Floxel.NUM_SHADES );
-    
-    mTexture = new Texture("Hoop.png");
-    mTexture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
     
   } // constructor
   
@@ -145,7 +133,7 @@ public class Cursor extends Sprite implements SourceTerm {
   } // cancel()
 
   // radius of the captured floxel crowd
-  public float floxelRadius() {
+  private float floxelRadius() {
     
     if ( mNumCaptured <= 1 ) return 0.0f;
     
@@ -179,8 +167,7 @@ public class Cursor extends Sprite implements SourceTerm {
         mNumCaptured = 0;
       }
       mFocus = Math.max(0.0f, mFocus-dt*kFocusRate);
-      mLaunchTimer = Math.max(0.0f, mLaunchTimer-dt);
-      if ( mFocus == 0.0f && mLaunchTimer == 0.0f ) mState = State.NOTHING;
+      if ( mFocus == 0.0f ) mState = State.NOTHING;
       return;
     }
     
@@ -229,7 +216,6 @@ public class Cursor extends Sprite implements SourceTerm {
     } else {
       if ( mState == State.CAPTURING ) {
         mState = State.LAUNCHING;
-        mLaunchTimer = 0.5f;
         float h = Math.min(1.0f, mNumCaptured/(float)kLaunchRepulseNum);
         mLaunchRepulseStrength = (1-h)*kRepulseStrength 
                                  + h*kRepulseStrengthMax; 
@@ -264,7 +250,7 @@ public class Cursor extends Sprite implements SourceTerm {
       if ( mState == State.CAPTURING ) {
         strength = +kRepulseStrength;
       } else if ( mState == State.LAUNCHING ) {
-        strength = (mLaunchTimer/kLaunchRepulseTime)*mLaunchRepulseStrength;
+        strength = mFocus*mLaunchRepulseStrength;
       }
     }
     if ( strength == 0.0f ) return;
@@ -321,8 +307,9 @@ public class Cursor extends Sprite implements SourceTerm {
     // draw the circle
     
     float scale = 1.0f + (kUnfocusScale-1.0f)*(1.0f-mFocus);
+    float alpha = (1.0f-mFocus)*kUnfocusAlpha + mFocus;
     HoopPainter hoopPainter = Env.painter().hoopPainter();
-    hoopPainter.drawHoop(batch, mXPos, mYPos, scale*kCursorRadius, mFocus);
+    hoopPainter.drawHoop(batch, mXPos, mYPos, scale*kCursorRadius, alpha);
     
   } // Sprite.draw()
 
