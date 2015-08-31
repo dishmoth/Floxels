@@ -32,6 +32,11 @@ public class Cursor extends Sprite implements SourceTerm {
   // slight delay before the initial summons kicks in
   private static final float kSummonDelay = 0.4f;
   
+  // how long the cursor has to be held before summoning again
+  private static final float kResummonDelay       = 2.0f,
+                             kResummonRepeatDelay = 0.5f;
+  private static final int   kResummonNum         = 10;
+  
   // how the floxels fill-up the cursor
   private static final int   kFloxelCrowdNumMax    = 200,
                              kFloxelCrowdNumDrawn  = 100;
@@ -76,7 +81,8 @@ public class Cursor extends Sprite implements SourceTerm {
 
   // first operation of the cursor is to summon floxels
   private final int mNumToSummon;
-  private boolean   mSummoning;
+  private boolean   mSummoning,
+                    mInitialSummons;
   private float     mSummonTimer;
   
   // number of captured floxels
@@ -102,7 +108,7 @@ public class Cursor extends Sprite implements SourceTerm {
 
     assert( numToSummon >= 0 );
     mNumToSummon = numToSummon;
-    mSummoning = ( mNumToSummon > 0 );
+    mInitialSummons = mSummoning = ( mNumToSummon > 0 );
     mSummonTimer = 0.0f;
     
     mNumCaptured = 0;
@@ -129,6 +135,8 @@ public class Cursor extends Sprite implements SourceTerm {
       mNumCaptured = 0;
     }
     mState = State.NOTHING;
+    if ( !mInitialSummons ) mSummoning = false;
+    mSummonTimer = 0.0f;
     
   } // cancel()
 
@@ -160,69 +168,113 @@ public class Cursor extends Sprite implements SourceTerm {
                 y = (state.y - Env.gameOffsetY())/(float)Env.tileWidth();
     boolean button = state.b;
 
+    int numActiveFloxels = mFloxels.numFloxels(mFloxelType);
+    
     if ( mState == State.LAUNCHING ) {
-      if ( mNumCaptured > 0 ) {
-        mFloxels.releaseFloxels(mFloxelType, mNumCaptured, 
-                                mXPos, mYPos, floxelRadius());
-        mNumCaptured = 0;
-      }
+      // launching (animate the cursor)
       mFocus = Math.max(0.0f, mFocus-dt*kFocusRate);
       if ( mFocus == 0.0f ) mState = State.NOTHING;
       return;
     }
     
     if ( x >= 0 && x < Env.numTilesX() && y >= 0 && y < Env.numTilesY() ) {
+      // update cursor position
       mXPos = x;
       mYPos = y;
-    } else if ( mSummoning && mFloxels.numFloxels(mFloxelType) > 0 ) {
+    } else if ( mSummoning && mInitialSummons && numActiveFloxels > 0 ) {
       // keep the last position
     } else {
+      // cursor has gone off-screen
       mState = State.NOTHING;
       mFocus = 0.0f;
+      if ( !mInitialSummons ) mSummoning = false;
       mSummonTimer = 0.0f;
       return;
     }
     
     if ( mSummoning && mState == State.CAPTURING ) {
+      // summoning (lock down the button for the initial summons)
+      assert( mNumCaptured <= mNumToSummon );
       if ( mNumCaptured == mNumToSummon ) {
-        assert( mFloxels.numFloxels(mFloxelType) == 0 );
+        assert( numActiveFloxels == 0 );
         mSummoning = false;
-      } else if ( mFloxels.numFloxels(mFloxelType) > 0 ) {
+        mInitialSummons = false;
+        mSummonTimer = 0.0f;
+      } else if ( mInitialSummons && numActiveFloxels > 0 ) {
         button = true;
       }
     }
     
     if ( button ) {
+      // button pressed (animate cursor, capture, summon, etc.)
       if ( mState == State.NOTHING ) {
         if ( mSummoning ) {
+          assert( mInitialSummons );
           mSummonTimer = kSummonDelay;
         }
       }
       mState = State.CAPTURING;
-      int num = mFloxels.captureFloxels(mXPos, mYPos, 
-                                        kPullRadius, kCaptureRadius,
-                                        mFloxelType);
-      mNumCaptured += num;
-      if ( num > 0 ) Env.sounds().playCaptureSound(num);
-      if ( mSummoning && mSummonTimer > 0.0f ) {
-        mSummonTimer = Math.max(mSummonTimer-dt, 0.0f);
-        if ( mSummonTimer == 0.0f ) {
-          mFloxels.summonFloxels(mNumToSummon, mFloxelType);
-          Env.sounds().play(Sounds.SUMMON_A);
-          Env.sounds().play(Sounds.SUMMON_B, 6);
-        }
+      if ( numActiveFloxels == 0 && !mSummoning &&
+           mNumCaptured < mNumToSummon ) {
+        assert( !mInitialSummons );
+        mSummoning = true;
+        mSummonTimer = kResummonDelay;
       }
-      if ( mFocus < 1.0f ) mFocus = Math.min(1.0f, mFocus+dt*kFocusRate);
+      if ( mFocus == 1.0f ) {
+        int numCatch = mFloxels.captureFloxels(mXPos, mYPos, 
+                                               kPullRadius, kCaptureRadius,
+                                               mFloxelType);
+        if ( numCatch > 0 ) {
+          mNumCaptured += numCatch;
+          numActiveFloxels -= numCatch;
+          Env.sounds().playCaptureSound(numCatch);
+        }
+        if ( mSummoning && mSummonTimer > 0.0f ) {
+          mSummonTimer = Math.max(mSummonTimer-dt, 0.0f);
+          if ( mSummonTimer == 0.0f ) {
+            if ( mInitialSummons ) {
+              assert( numActiveFloxels == 0 );
+              assert( mNumCaptured == 0 );
+              mFloxels.summonFloxels(mNumToSummon, mFloxelType);
+              Env.sounds().play(Sounds.SUMMON_A);
+              Env.sounds().play(Sounds.SUMMON_B, 6);
+            } else {
+              int numLeft = mNumToSummon - mNumCaptured - numActiveFloxels;
+              int n = (numLeft <= kResummonNum)  ? numLeft
+                    : (numLeft < 2*kResummonNum) ? (numLeft+1)/2
+                                                 : kResummonNum;
+              if ( n > 0 ) {
+                mFloxels.summonFloxels(n, mFloxelType);
+                Env.sounds().play(Sounds.SUMMON_C);
+                mSummonTimer = kResummonRepeatDelay;
+              }
+            }
+          }
+        }
+      } else {
+        mFocus = Math.min(1.0f, mFocus+dt*kFocusRate);
+      }
     } else {
+      // button released
       if ( mState == State.CAPTURING ) {
         mState = State.LAUNCHING;
-        float h = Math.min(1.0f, mNumCaptured/(float)kLaunchRepulseNum);
-        mLaunchRepulseStrength = (1-h)*kRepulseStrength 
-                                 + h*kRepulseStrengthMax; 
+        if ( mNumCaptured > 0 ) {
+          float h = Math.min(1.0f, mNumCaptured/(float)kLaunchRepulseNum);
+          mLaunchRepulseStrength = (1-h)*kRepulseStrength 
+                                   + h*kRepulseStrengthMax; 
+          mFloxels.releaseFloxels(mFloxelType, mNumCaptured, 
+                                  mXPos, mYPos, floxelRadius());
+          mNumCaptured = 0;
+        } else {
+          mLaunchRepulseStrength = 0.0f;
+        }
+        if ( !mInitialSummons ) mSummoning = false;
+        mSummonTimer = 0.0f;
       }
     }
 
     if ( mState == State.CAPTURING ) {
+      // animate the last-drawn (most visible) floxel face
       mFinalFaceTimer -= dt;
       if ( mFinalFaceTimer <= 0.0f ) {
         mFinalFaceTimer = Env.randomFloat(kFinalFaceMinTime, 
@@ -243,11 +295,11 @@ public class Cursor extends Sprite implements SourceTerm {
 
     float strength = 0.0f;
     if ( floxelType == mFloxelType ) {
-      if ( mState == State.CAPTURING ) {
+      if ( mState == State.CAPTURING && mFocus == 1.0f ) {
         strength = -kAttractStrength;
       }
     } else {
-      if ( mState == State.CAPTURING ) {
+      if ( mState == State.CAPTURING && mFocus == 1.0f  ) {
         strength = +kRepulseStrength;
       } else if ( mState == State.LAUNCHING ) {
         strength = mFocus*mLaunchRepulseStrength;
@@ -308,8 +360,8 @@ public class Cursor extends Sprite implements SourceTerm {
     
     float scale = 1.0f + (kUnfocusScale-1.0f)*(1.0f-mFocus);
     float alpha = (1.0f-mFocus)*kUnfocusAlpha + mFocus;
-    HoopPainter hoopPainter = Env.painter().hoopPainter();
-    hoopPainter.drawHoop(batch, mXPos, mYPos, scale*kCursorRadius, alpha);
+    Env.painter().hoopPainter().drawHoop(batch, mXPos, mYPos, 
+                                         scale*kCursorRadius, alpha);
     
   } // Sprite.draw()
 

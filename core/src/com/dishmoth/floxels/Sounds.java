@@ -50,8 +50,9 @@ public class Sounds {
                            REVERSAL    = 30,
                            MAZE_MORPH  = 31,
                            SUMMON_A    = 32,
-                           SUMMON_B    = 33;
-  private static final int kNumSounds  = 34; 
+                           SUMMON_B    = 33,
+                           SUMMON_C    = 34;
+  private static final int kNumSounds  = 35; 
   
   // true if sounds have been loaded and all is operational
   private boolean mAvailable;
@@ -113,6 +114,7 @@ public class Sounds {
     loadSound(MAZE_MORPH, "morph.ogg");
     loadSound(SUMMON_A, "summon_A.wav");
     loadSound(SUMMON_B, "summon_B.wav");
+    loadSound(SUMMON_C, "summon_C.wav");
 
     for ( int k = 0 ; k < kNumDeathSounds ; k++ ) {
       loadSound(GRUNT_0+k, "grunt"+k+".ogg");

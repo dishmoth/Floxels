@@ -132,10 +132,10 @@ public class FloxelsStory extends Story {
       } // Story.EventGameBegins
 
       if ( event instanceof Floxels.EventPopulationDestroyed ) {
-        final int type = ((Floxels.EventPopulationDestroyed)event).mType;
-        if ( type == kMajorityType ) {
+        if ( mFloxels.numFloxels(kMajorityType) == 0 ) {
           newLevel(spriteManager);
-        } else if ( type == kMinorityType && mCursor.numCaptured() == 0 ) {
+        } else if ( mFloxels.numFloxels(kMinorityType) 
+                    + mCursor.numCaptured() == 0 ) {
           restartLevel(spriteManager);
         }
         it.remove();

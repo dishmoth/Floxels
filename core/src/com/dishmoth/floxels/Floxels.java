@@ -70,8 +70,7 @@ public class Floxels extends Sprite {
   static private final int   kFaceChangeStep    = 10;
   
   // how floxels are summoned to the cursor
-  static private final float kSummonDelay = 0.2f,
-                             kSummonSpeed = 70.0f;
+  static private final float kSummonSpeed = 70.0f;
   
   // the flow field
   private Flow mFlows[];
@@ -120,9 +119,8 @@ public class Floxels extends Sprite {
                 mPullYPos,
                 mPullRadius;
   
-  // call all floxels to the pull position
+  // call all player floxels to the pull position
   private boolean mSummonFloxels;
-  private float   mSummonTimer;
   
   // constructor
   public Floxels(Flow flows[]) {
@@ -167,7 +165,6 @@ public class Floxels extends Sprite {
     mPullType = -1;
     mPullXPos = mPullYPos = mPullRadius = 0.0f;
     mSummonFloxels = false;
-    mSummonTimer = 0.0f;
     
   } // constructor
 
@@ -376,6 +373,7 @@ public class Floxels extends Sprite {
       if ( dx*dx + dy*dy < captureRadius*captureRadius ) {
         floxel.mState = Floxel.State.UNUSED;
         numCaptured += 1;
+        mNumActiveFloxels[type] -= 1;
       }
     }
     return numCaptured;
@@ -386,17 +384,14 @@ public class Floxels extends Sprite {
   // (move them to the end of the list so they are drawn over everything else)
   public void summonFloxels(int num, int type) {
     
-    assert( !mSummonFloxels );
-    
     final int otherType = 1-type;
     
-    assert( mNumActiveFloxels[type] == 0 );
     assert( num > 0 );
     assert( num <= mNumActiveFloxels[otherType] );
     
-    final int splatTime = Math.round( Env.TICKS_PER_SEC*kSummonDelay );
+    final int splatTime = Math.round( Env.TICKS_PER_SEC*kSplatTime );
 
-    final int step = Env.randomInt(1,10);
+    final int step = Env.randomInt(1,100);
     int offset = 0;
     
     int index = offset;
@@ -405,8 +400,8 @@ public class Floxels extends Sprite {
     int numGot = 0;
     while ( numGot < num ) {
       Floxel floxel = mFloxels[index];
-      if ( floxel.mState != Floxel.State.UNUSED ) {
-        assert( floxel.mType == otherType );
+      if ( floxel.mState != Floxel.State.UNUSED && 
+           floxel.mType == otherType ) {
         floxel.mState = Floxel.State.SPLATTED;
         floxel.mTimer = (byte)splatTime;
         floxel.mFace = (byte)Floxel.SPLAT_FACE;
@@ -441,7 +436,6 @@ public class Floxels extends Sprite {
     mNumActiveFloxels[otherType] -= num;
     
     mSummonFloxels = true;
-    mSummonTimer = 0.0f;
     
   } // summonFloxels()
   
@@ -452,6 +446,15 @@ public class Floxels extends Sprite {
                       LinkedList<StoryEvent> newStoryEvents) {
 
     int oldNumFloxels[] = mNumActiveFloxels.clone();
+    
+    if ( mSummonFloxels ) {
+      if ( mPullType == -1 ) {
+        for ( Floxel floxel : mFloxels ) {
+          if ( floxel.mState == Floxel.State.NORMAL ) floxel.mTimer = 0;
+        }
+        mSummonFloxels = false;
+      }
+    }
     
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState == Floxel.State.UNUSED ) continue;
@@ -471,14 +474,6 @@ public class Floxels extends Sprite {
       }
     }
 
-    if ( mSummonFloxels ) {
-      mSummonTimer += Env.TICK_TIME;
-      if ( mPullType == -1 || mNumActiveFloxels[mPullType] == 0 ) {
-        mSummonFloxels = false;
-        mSummonTimer = 0.0f;
-      }
-    }
-    
     mPullType = -1;
     
   } // Sprite.advance()
@@ -543,7 +538,7 @@ public class Floxels extends Sprite {
       } break;
 
       case NORMAL: {
-        assert( floxel.mTimer == 0 );
+        if ( !mSummonFloxels ) assert( floxel.mTimer == 0 );
       } break;
     }
 
@@ -580,10 +575,11 @@ public class Floxels extends Sprite {
       if ( mSummonFloxels || p2 <= mPullRadius*mPullRadius ) {
         float speed = kMaxSpeed;
         if ( mSummonFloxels ) {
-          if ( mSummonTimer < kSummonDelay ) {
+          if ( floxel.mState == Floxel.State.SPLATTED ) {
             speed = 0.0f;
           } else {
-            float summonDt = mSummonTimer - kSummonDelay; 
+            floxel.mTimer += 1;
+            float summonDt = floxel.mTimer*Env.TICK_TIME; 
             speed = summonDt*summonDt*kSummonSpeed;
           }
         }
