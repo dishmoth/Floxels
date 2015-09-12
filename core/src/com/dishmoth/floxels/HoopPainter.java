@@ -91,10 +91,15 @@ public class HoopPainter {
     
     batch.flush();
     
+    assert( r > 0.0f );
+    
     x = x*Env.tileWidth() + Env.gameOffsetX();
     y = y*Env.tileWidth() + Env.gameOffsetY();
     r *= Env.tileWidth();
     float dr = 0.5f*mThickness;
+    
+    float r0 = Math.max(0.0f, r-dr),
+          r1 = r+dr;
 
     int colBits = ((int)(255 * alpha) << 24) | (255<<16) | (255<<8) | (255);
     float colour = NumberUtils.intToFloatColor(colBits);
@@ -104,14 +109,14 @@ public class HoopPainter {
       float dx = mUnitCircle[2*k],
             dy = mUnitCircle[2*k+1];
       
-      mVertices[i++] = x + (r-dr)*dx;
-      mVertices[i++] = y + (r-dr)*dy;
+      mVertices[i++] = x + r0*dx;
+      mVertices[i++] = y + r0*dy;
       mVertices[i++] = colour;
       mVertices[i++] = mU0;
       mVertices[i++] = mV0;
       
-      mVertices[i++] = x + (r+dr)*dx;
-      mVertices[i++] = y + (r+dr)*dy;
+      mVertices[i++] = x + r1*dx;
+      mVertices[i++] = y + r1*dy;
       mVertices[i++] = colour;
       mVertices[i++] = mU1;
       mVertices[i++] = mV1;
