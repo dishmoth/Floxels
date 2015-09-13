@@ -1,170 +1,104 @@
 /*
  *  Maze.java
- *  Copyright Simon Hern 2010
+ *  Copyright Simon Hern 2015
  *  Contact: dishmoth@yahoo.co.uk, www.dishmoth.com
  */
 
 package com.dishmoth.floxels;
 
-import java.util.Collections;
 import java.util.LinkedList;
 
-// simple structure for holding a grid of walls
-public class Maze {
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-  // a single difference between two mazes
-  public static class Delta {
-    public boolean mHoriz;
-    public int     mXPos, 
-                   mYPos;
-    public Delta(boolean h, int ix, int iy) { mHoriz=h; mXPos=ix; mYPos=iy; }
-  } // class Maze.Delta
+// sprite object for animating and displaying the maze data
+public class Maze extends Sprite {
+
+  // story event: the maze walls have changed
+  public static class EventMazeChanged extends StoryEvent {
+  } // Maze.EventMazeChanged
   
-  // size of the maze
-  private int mNumTilesX,
-              mNumTilesY;
+  // how this sprite is drawn relative to others
+  private static final int kScreenLayer = 5;
+
+  // seconds until the next maze change
+  private static final float kChangeDelay      = 0.015f,
+                             kChangeFirstDelay = 1.0f;
   
-  // where the walls are
-  private boolean mHorizWalls[][],
-                  mVertWalls[][]; 
+  // current maze number
+  private int mMazeNum;
+  
+  // the underlying maze structure
+  private MazeData mMazeData;
+  
+  // when changing the maze, these are the changes remaining to be made
+  private LinkedList<MazeData.Delta> mDeltas;
+  
+  // seconds until the next maze alteration (or zero)
+  private float mChangeTimer;
   
   // constructor
-  public Maze(String data[], 
-              boolean flipXY, boolean flipVert, boolean flipHoriz) {
+  public Maze(int num) {
 
-    assert( data != null );
-    assert( data[0] != null );
-    
-    mNumTilesY = data.length - 1;
-    assert( mNumTilesY > 0 );
+    super(kScreenLayer);
 
-    mNumTilesX = (data[0].length() - 1)/2;
-    assert( 2*mNumTilesX + 1 == data[0].length() );
+    assert( num >= 0 );
+    mMazeNum = num;
+    
+    mMazeData = Mazes.get(mMazeNum);
 
-    mHorizWalls = new boolean[mNumTilesY+1][mNumTilesX];
-    mVertWalls = new boolean[mNumTilesY][mNumTilesX+1];
-    
-    for ( int iy = 0 ; iy < mNumTilesY+1 ; iy++ ) {
-      assert( data[iy] != null && data[iy].length() == 2*mNumTilesX+1 );
-      for ( int ix = 0 ; ix < mNumTilesX ; ix++ ) {
-        char ch = data[iy].charAt(2*ix+1);
-        assert( ch == ' ' || ch == '_' );
-        mHorizWalls[iy][ix] = (ch == '_');
-      }
-    }
-    
-    for ( int iy = 0 ; iy < mNumTilesY ; iy++ ) {
-      for ( int ix = 0 ; ix < mNumTilesX+1 ; ix++ ) {
-        char ch = data[iy+1].charAt(2*ix);
-        assert( ch == ' ' || ch == 'I' );
-        mVertWalls[iy][ix] = (ch == 'I');
-      }
-    }
-    
-    if ( flipXY ) {
-      int swap = mNumTilesX;
-      mNumTilesX = mNumTilesY;
-      mNumTilesY = swap;
-      
-      boolean oldHorizWalls[][] = mHorizWalls;
-      boolean oldVertWalls[][] = mVertWalls;
-      
-      mHorizWalls = new boolean[mNumTilesY+1][mNumTilesX];
-      for ( int iy = 0 ; iy < mNumTilesY+1 ; iy++ ) {
-        for ( int ix = 0 ; ix < mNumTilesX ; ix++ ) {
-          mHorizWalls[iy][ix] = oldVertWalls[ix][iy];
-        }
-      }
-      
-      mVertWalls = new boolean[mNumTilesY][mNumTilesX+1];
-      for ( int iy = 0 ; iy < mNumTilesY ; iy++ ) {
-        for ( int ix = 0 ; ix < mNumTilesX+1 ; ix++ ) {
-          mVertWalls[iy][ix] = oldHorizWalls[ix][iy];
-        }
-      }
-    }
-
-    if ( flipVert ) {
-      for ( int iy = 0 ; iy < (mNumTilesY+1)/2 ; iy++ ) {
-        boolean swap[] = mHorizWalls[iy];
-        mHorizWalls[iy] = mHorizWalls[mNumTilesY-iy];
-        mHorizWalls[mNumTilesY-iy] = swap;
-      }
-      for ( int iy = 0 ; iy < mNumTilesY/2 ; iy++ ) {
-        boolean swap[] = mVertWalls[iy];
-        mVertWalls[iy] = mVertWalls[mNumTilesY-1-iy];
-        mVertWalls[mNumTilesY-1-iy] = swap;
-      }
-    }
-    
-    if ( flipHoriz ) {
-      for ( int iy = 0 ; iy < mNumTilesY+1 ; iy++ ) {
-        for ( int ix = 0 ; ix < mNumTilesX/2 ; ix++ ) {
-          boolean swap = mHorizWalls[iy][ix];
-          mHorizWalls[iy][ix] = mHorizWalls[iy][mNumTilesX-1-ix];
-          mHorizWalls[iy][mNumTilesX-1-ix] = swap;
-        }
-      }
-      for ( int iy = 0 ; iy < mNumTilesY ; iy++ ) {
-        for ( int ix = 0 ; ix < (mNumTilesX+1)/2 ; ix++ ) {
-          boolean swap = mVertWalls[iy][ix];
-          mVertWalls[iy][ix] = mVertWalls[iy][mNumTilesX-ix];
-          mVertWalls[iy][mNumTilesX-ix] = swap;
-        }
-      }
-    }
+    mDeltas = new LinkedList<MazeData.Delta>();
+    mChangeTimer = 0.0f;
     
   } // constructor
 
-  // size of the maze
-  public int numTilesX() { return mNumTilesX; }
-  public int numTilesY() { return mNumTilesY; }
+  // access to the maze data
+  public MazeData data() { return mMazeData; }
   
-  // is there an ix'th wall section on the iy'th row 
-  public boolean horizWall(int ix, int iy) {
-    
-    if ( ix < 0 || ix >= mNumTilesX ||
-         iy < 0 || iy >  mNumTilesY ) return false;
-    return mHorizWalls[iy][ix];
-    
-  } // horizWall()
+  // start the transformation to the next maze
+  public void changeToNext() {
   
-  // is there an iy'th wall section on the ix'th column 
-  public boolean vertWall(int ix, int iy) {
-    
-    if ( ix < 0 || ix >  mNumTilesX ||
-         iy < 0 || iy >= mNumTilesY ) return false;
-    return mVertWalls[iy][ix];
-    
-  } // vertWall()
+    mMazeNum += 1;
 
-  // list the differences between this maze and another
-  public void collectDifferences(Maze other, LinkedList<Delta> deltas) {
+    assert( mDeltas.isEmpty() );
+    MazeData nextMaze = Mazes.get(mMazeNum);
+    mMazeData.collectDifferences(nextMaze, mDeltas);
+    mChangeTimer = kChangeFirstDelay;
+        
+  } // changeToNext()
 
-    for ( int iy = 0 ; iy < numTilesY()+1 ; iy++ ) {
-      for ( int ix = 0 ; ix < numTilesX()+1 ; ix++ ) {
-        if ( iy < numTilesY() && 
-             mVertWalls[iy][ix] != other.mVertWalls[iy][ix] ) {
-          deltas.add( new Delta(false, ix, iy) );
-        }
-        if ( ix < numTilesX() && 
-             mHorizWalls[iy][ix] != other.mHorizWalls[iy][ix] ) {
-          deltas.add( new Delta(true, ix, iy) );
+  // whether the maze is currently changing
+  public boolean changing() { return !mDeltas.isEmpty(); }
+
+  // modify the maze for a new level
+  @Override
+  public void advance(LinkedList<Sprite>     addTheseSprites,
+                      LinkedList<Sprite>     killTheseSprites,
+                      LinkedList<StoryEvent> newStoryEvents) {
+    
+    if ( mChangeTimer > 0.0f ) {
+      mChangeTimer -= Env.TICK_TIME;
+      boolean changed = false;
+      while ( mChangeTimer <= 0.0f ) {
+        mMazeData.applyDifference(mDeltas.pop());
+        changed = true;
+        if ( mDeltas.isEmpty() ) {
+          mChangeTimer = 0.0f;
+          break;
+        } else {
+          mChangeTimer += kChangeDelay;
         }
       }
+      if ( changed ) newStoryEvents.add( new EventMazeChanged() );
     }
-    Collections.shuffle(deltas);
-  
-  } // collectDifferences()
+    
+  } // Sprite.advance()
 
-  // make one change to the maze
-  public void applyDifference(Delta delta) {
+  // display the maze
+  @Override
+  public void draw(SpriteBatch batch) {
+
+    Env.painter().mazePainter().draw(batch, mMazeData);
     
-    final int ix = delta.mXPos,
-              iy = delta.mYPos;
-    if ( delta.mHoriz )  mHorizWalls[iy][ix] = !mHorizWalls[iy][ix];
-    else                 mVertWalls[iy][ix] = !mVertWalls[iy][ix];      
-    
-  } // applyDifference()
+  } // Sprite.draw()
   
 } // class Maze

@@ -30,7 +30,7 @@ public class BlastCursor extends Sprite {
   private static final int kSummonedFloxelType = 1;
   
   // reference to the current maze
-  private Maze mMaze;
+  private MazeData mMaze;
   
   // reference to the floxels
   private Floxels mFloxels;
@@ -48,7 +48,7 @@ public class BlastCursor extends Sprite {
   private Summoner mSummoner;
   
   // constructor
-  public BlastCursor(Maze maze, Floxels floxels) {
+  public BlastCursor(MazeData maze, Floxels floxels) {
     
     super(0);
 

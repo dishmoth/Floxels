@@ -38,8 +38,6 @@ public class FloxelsStory extends Story {
   static private final float kIntroDelay       = 0.9f,
                              kRestartDelay     = 1.5f,
                              kRestartLongDelay = 2.0f,
-                             kChangeDelay      = 0.015f,
-                             kChangeFirstDelay = 1.0f,
                              kSpawnDelay       = 0.15f,
                              kSpawnDelayFirst  = 1.1f;
   
@@ -55,12 +53,6 @@ public class FloxelsStory extends Story {
   // player's current level (0, 1, 2, ...)
   private int mLevel;
   
-  // index of the current maze
-  private int mMazeNum;
-
-  // when changing the maze, these are the changes remaining to be made
-  private LinkedList<Maze.Delta> mMazeDeltas = new LinkedList<Maze.Delta>();
-  
   // number of enemy floxels at the start of the level (not including converts)
   private int mMajorityPopulation;
   
@@ -73,9 +65,6 @@ public class FloxelsStory extends Story {
   // seconds until new floxels can be introduced (or zero)
   private float mRestartTimer;
 
-  // seconds until the next maze alteration
-  private float mChangeTimer;
-  
   // true if the minority is suddenly on the offensive
   private boolean mReversed;
   
@@ -83,7 +72,6 @@ public class FloxelsStory extends Story {
   public FloxelsStory() {
 
     mLevel = -1;
-    mMazeNum = -1;
 
   } // constructor
 
@@ -97,7 +85,6 @@ public class FloxelsStory extends Story {
 
       if ( event instanceof Story.EventGameBegins ) {
         mLevel = 0;
-        mMazeNum = 0;
         prepareNewStory(spriteManager);
         it.remove();
       } // Story.EventGameBegins
@@ -112,13 +99,18 @@ public class FloxelsStory extends Story {
         it.remove();
       } // Floxels.EventPopulationDestroyed
 
+      if ( event instanceof Maze.EventMazeChanged ) {
+        for ( Flow flow : mFlows ) prepareFlow(flow, mMaze.data());
+        it.remove();
+      } // Maze.EventMazeChanged
+      
     } // for each story event
 
     updateHuntFactors();
     updateFlows(spriteManager);
     
     // pause before adding the player's cursor
-    if ( mRestartTimer > 0.0f && mChangeTimer == 0.0f ) {
+    if ( mRestartTimer > 0.0f && !mMaze.changing() ) {
       mRestartTimer -= Env.TICK_TIME;
       if ( mRestartTimer <= 0.0f ) {
         assert( mCursor == null );
@@ -128,25 +120,6 @@ public class FloxelsStory extends Story {
       }
     }
 
-    // modify the maze for a new level
-    if ( mChangeTimer > 0.0f ) {
-      mChangeTimer -= Env.TICK_TIME;
-      boolean changed = false;
-      while ( mChangeTimer <= 0.0f ) {
-        mMaze.applyDifference(mMazeDeltas.pop());
-        changed = true;
-        if ( mMazeDeltas.isEmpty() ) {
-          mChangeTimer = 0.0f;
-          break;
-        } else {
-          mChangeTimer += kChangeDelay;
-        }
-      }
-      if ( changed ) {
-        for ( Flow flow : mFlows ) prepareFlow(flow, mMaze);
-      }
-    }
-    
     // unleash floxels at the start of the game
     if ( mIntroTimer > 0.0f ) {
       mIntroTimer -= Env.TICK_TIME;
@@ -299,7 +272,7 @@ public class FloxelsStory extends Story {
   // things to do when the game begins
   private void prepareNewStory(SpriteManager spriteManager) {
 
-    prepareNewRoom(spriteManager);
+    prepareNewSprites(spriteManager);
 
     setLevelDifficulty();
     setFloxelColours();
@@ -314,11 +287,14 @@ public class FloxelsStory extends Story {
   } // prepareNewStory()
 
   // initialization of sprites, etc.
-  private void prepareNewRoom(SpriteManager spriteManager) {
+  private void prepareNewSprites(SpriteManager spriteManager) {
 
-    mMaze = Mazes.get(mMazeNum);
-    mBackground = new Background(mMaze);
+    mBackground = new Background();
     spriteManager.addSprite(mBackground);
+
+    final int firstMazeNum = 0;
+    mMaze = new Maze(firstMazeNum);
+    spriteManager.addSprite(mMaze);
 
     mScore = new Score();
     spriteManager.addSprite(mScore);
@@ -326,7 +302,7 @@ public class FloxelsStory extends Story {
     mFlows = new Flow[kNumTypes];
     for ( int k = 0 ; k < mFlows.length ; k++ ) {
       mFlows[k] = new Flow(Env.numTilesX(), Env.numTilesY(), 4);
-      prepareFlow(mFlows[k], mMaze);
+      prepareFlow(mFlows[k], mMaze.data());
       mFlows[k].reset();
       mFlows[k].solve();
     }
@@ -345,10 +321,10 @@ public class FloxelsStory extends Story {
     mVentControls[kMajorityType].setHuntStrength(1.0f);
     mVentControls[kMinorityType].setHuntStrength(0.0f);
 
-  } // prepareNewRoom()
+  } // prepareNewSprites()
   
   // build a flow consistent with the maze
-  private void prepareFlow(Flow flow, Maze maze) {
+  private void prepareFlow(Flow flow, MazeData maze) {
 
     final int nx = Env.numTilesX(),
               ny = Env.numTilesY();
@@ -405,10 +381,7 @@ public class FloxelsStory extends Story {
 
     growPopulation(spriteManager);
     
-    mMazeNum += 1;
-    Maze nextMaze = Mazes.get(mMazeNum);
-    mMaze.collectDifferences(nextMaze, mMazeDeltas);
-    mChangeTimer = kChangeFirstDelay;
+    mMaze.changeToNext();
 
     Env.sounds().play(Sounds.SUCCESS, 15);
     

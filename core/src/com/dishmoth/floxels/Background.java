@@ -14,7 +14,7 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-// static image of the maze and its background 
+// static background image 
 public class Background extends Sprite {
 
   // how this sprite is drawn relative to others
@@ -39,15 +39,10 @@ public class Background extends Sprite {
   private static Pixmap  kNoiseImage   = null;
   private static Texture kNoiseTexture = null;
   
-  // reference to the maze object
-  private Maze mMaze;
-  
   // constructor
-  public Background(Maze maze) {
+  public Background() {
     
     super(kScreenLayer);
-    
-    mMaze = maze;
     
     if ( kNoiseImage == null ) makeNoise();
     
@@ -121,8 +116,6 @@ public class Background extends Sprite {
                0.0f, 0.0f,
                kNoiseRepeats, kNoiseRepeats);
 
-    Env.painter().mazePainter().draw(batch, mMaze);
-    
   } // Sprite.draw()
   
 } // class ScreenImage

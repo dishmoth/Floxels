@@ -72,7 +72,7 @@ public class Bouncer extends Sprite implements SourceTerm {
   private static final float kClusterRadius = 8.0f;
   
   // reference to the maze object
-  private Maze mMaze;
+  private MazeData mMaze;
   
   // reference to the floxels
   private Floxels mFloxels;
@@ -182,7 +182,7 @@ public class Bouncer extends Sprite implements SourceTerm {
 //  } // makeSparkImage()
   
   // constructor
-  public Bouncer(Maze maze, Floxels floxels) {
+  public Bouncer(MazeData maze, Floxels floxels) {
 
     super(kScreenLayer);
     

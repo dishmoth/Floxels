@@ -244,7 +244,7 @@ public class MazePainter {
   } // wallTexture()
   
   // display the maze walls
-  public void draw(SpriteBatch batch, Maze maze) {
+  public void draw(SpriteBatch batch, MazeData maze) {
 
     final int delta = Env.tileWidth();
     

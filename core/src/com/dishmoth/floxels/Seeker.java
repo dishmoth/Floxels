@@ -60,7 +60,7 @@ public class Seeker extends Sprite {
 //  private static BufferedImage kHoopImage     = null;
 
   // reference to the maze object
-  private Maze mMaze;
+  private MazeData mMaze;
   
   // reference to the floxels
   private Floxels mFloxels;
@@ -120,7 +120,7 @@ public class Seeker extends Sprite {
 //  } // drawHoop()
   
   // constructor
-  public Seeker(Maze maze, Floxels floxels, Flow flow) {
+  public Seeker(MazeData maze, Floxels floxels, Flow flow) {
 
     super(kScreenLayer);
     

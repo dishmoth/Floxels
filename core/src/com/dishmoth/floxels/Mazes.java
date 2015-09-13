@@ -198,7 +198,7 @@ public class Mazes {
         };
 
   // return a maze object for the specified index
-  static public Maze get(int index) {
+  static public MazeData get(int index) {
 
     String mazeData[][] = null;
     boolean flipXY = false;
@@ -226,7 +226,7 @@ public class Mazes {
     if ( (repeats & 1) != 0 ) flipHoriz = !flipHoriz;
     if ( (repeats & 2) != 0 ) flipVert = !flipVert;
     
-    return new Maze( mazeData[index], flipXY, flipVert, flipHoriz );
+    return new MazeData( mazeData[index], flipXY, flipVert, flipHoriz );
     
   } // get()
   
