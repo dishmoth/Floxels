@@ -34,19 +34,10 @@ public class FloxelsStory extends Story {
                              kFleeStrengthResign   = 0.5f;
   static private final int   kFleeResignNum        = 10;
 
-  // seconds until a new bouncer is added
-  static private final float kBouncerDelayMin = 5.0f,
-                             kBouncerDelayMax = 20.0f;
-
-  // special behaviour when a BlastMega is triggered (seconds)
-  static private final float kMegaBlastDuration = 1.5f,
-                             kMegaBlastAttack   = 3.0f;
-  
   // seconds until various events occur
   static private final float kIntroDelay       = 0.9f,
                              kRestartDelay     = 1.5f,
                              kRestartLongDelay = 2.0f,
-                             kStartleDelay     = 1.0f,
                              kChangeDelay      = 0.015f,
                              kChangeFirstDelay = 1.0f,
                              kSpawnDelay       = 0.15f,
@@ -76,39 +67,20 @@ public class FloxelsStory extends Story {
   // tweak to the aggression of the majority floxels (1.0 for no change)
   private float mDifficultyFactor;
 
-  // maximum number of bouncers active at one time
-  private int mMaxNumBouncers;
-
   // seconds until the first floxels appear (or zero)
   private float mIntroTimer;
 
   // seconds until new floxels can be introduced (or zero)
   private float mRestartTimer;
 
-  // seconds until surprised floxels start to attack
-  private float mStartleTimer;
-
   // seconds until the next maze alteration
   private float mChangeTimer;
   
-  // seconds until a new bouncer appears (or zero)
-  private float mNewBouncerTimer;
-
-  // seconds until the mega blast effect ends
-  private float mMegaBlastTimer;
-
   // true if the minority is suddenly on the offensive
   private boolean mReversed;
   
-  // prepare resources
-  static public void initialize() {
-
-  } // initialize()
-
   // constructor
   public FloxelsStory() {
-
-    initialize();
 
     mLevel = -1;
     mMazeNum = -1;
@@ -140,18 +112,12 @@ public class FloxelsStory extends Story {
         it.remove();
       } // Floxels.EventPopulationDestroyed
 
-      if ( event instanceof BlastMega.EventUnleashed ) {
-        mMegaBlastTimer = kMegaBlastDuration;
-        it.remove();
-      } // BlastMega.EventUnleashed
-      
     } // for each story event
 
     updateHuntFactors();
-    checkSummoners(spriteManager);
     updateFlows(spriteManager);
-    addBouncers(spriteManager);
     
+    // pause before adding the player's cursor
     if ( mRestartTimer > 0.0f && mChangeTimer == 0.0f ) {
       mRestartTimer -= Env.TICK_TIME;
       if ( mRestartTimer <= 0.0f ) {
@@ -162,6 +128,7 @@ public class FloxelsStory extends Story {
       }
     }
 
+    // modify the maze for a new level
     if ( mChangeTimer > 0.0f ) {
       mChangeTimer -= Env.TICK_TIME;
       boolean changed = false;
@@ -180,8 +147,12 @@ public class FloxelsStory extends Story {
       }
     }
     
+    // unleash floxels at the start of the game
     if ( mIntroTimer > 0.0f ) {
       mIntroTimer -= Env.TICK_TIME;
+      assert( mFloxels.numFloxels(kMajorityType) == 0 );
+      assert( mFloxels.numFloxels(kMinorityType) == 0 );
+      assert( mCursor == null );
       if ( mIntroTimer <= 0.0f ) {
         int total = mMajorityPopulation + kMinorityPopulation;
         mFloxels.releaseFloxels(0, total, 5.0f, 5.0f, 0.1f);
@@ -190,6 +161,8 @@ public class FloxelsStory extends Story {
         Env.sounds().play(Sounds.UNLEASH_BIG);
       }
     }
+
+    // sanity check
     if ( mIntroTimer == 0 &&
          spriteManager.findSpriteOfType(Spawner.class) == null ) {
       int total = mFloxels.numFloxels(kMajorityType)
@@ -209,22 +182,19 @@ public class FloxelsStory extends Story {
   private void updateHuntFactors() {
     
     final int majNum = mFloxels.numFloxels(kMajorityType),
-              minNum = mFloxels.numFloxels(kMinorityType);
+              minNum = mFloxels.numFloxels(kMinorityType),
+              capNum = (mCursor != null ? mCursor.numCaptured() : 0);
     
     final int total  = majNum + minNum;
     if ( total == 0 ) return;
     
-    final float minFrac = minNum/(float)total;
-    final float dt = Env.TICK_TIME;
+    final float minFrac    = minNum/(float)total,
+                minFracInc = (minNum+capNum)/(float)(total+capNum);
     
     // how tasty the minority population looks
     float huntStrength = kHuntStrength * mDifficultyFactor;
     if ( minNum == 0 ) {
       huntStrength = 0.0f;
-    } else if ( mStartleTimer > 0.0f ) {
-      final float h = mStartleTimer/kStartleDelay;
-      huntStrength = -10.0f*h + (1-h)*huntStrength;
-      mStartleTimer = Math.max(0.0f, mStartleTimer-dt);
     } else if ( minNum > 0 && minNum < kMinorityPopulation ) {
       final float h = minNum/(float)kMinorityPopulation;
       assert( h >= 0.0f && h <= 1.0f );
@@ -247,20 +217,13 @@ public class FloxelsStory extends Story {
       final float h = (minNum-1)/(float)(kFleeResignNum-1);
       fleeStrength *= h + (1-h)*kFleeStrengthResign;
     }
-    if ( mMegaBlastTimer > 0.0f ) {
-      final float h = Math.abs(2*mMegaBlastTimer/kMegaBlastDuration-1);
-      assert( h >= 0.0f && h <= 1.0f );
-      final float f = 1.0f - h*h;
-      final float str = (1-f)*kFleeStrength + f*(-kMegaBlastAttack);
-      if ( str < fleeStrength ) fleeStrength = str;
-      mMegaBlastTimer = Math.max(0.0f, mMegaBlastTimer-dt);
-    }
     mFloxels.setHuntingStrength(kMajorityType, +fleeStrength);
 
+    // sound effect
     if ( minFrac > kFleeReverseSoundFrac && !mReversed ) {
       Env.sounds().play(Sounds.REVERSAL);
       mReversed = true;
-    } else if ( minFrac < 0.75f*kFleeReverseSoundFrac ) {
+    } else if ( minFracInc < 0.75f*kFleeReverseSoundFrac ) {
       mReversed = false;
     }
     
@@ -273,21 +236,6 @@ public class FloxelsStory extends Story {
     mVentControls[kMinorityType].setNoMercy( majNum < kMinorityPopulation/2 );
     
   } // updateHuntFactors()
-  
-  // if any summoners are active, modify the vent controls
-  private void checkSummoners(SpriteManager spriteManager) {
-    
-    for ( Sprite s : spriteManager.list() ) {
-      if ( s instanceof Summoner ) {
-        Summoner summon = (Summoner)s;
-        final int type = summon.floxelType();
-        mVentControls[type].overrideTracking(summon.xPos(), 
-                                             summon.yPos(), 
-                                             summon.strength());
-      }
-    }
-    
-  } // checkSummoners()
   
   // bring the flow fields up-to-date 
   private void updateFlows(SpriteManager spriteManager) {
@@ -311,37 +259,6 @@ public class FloxelsStory extends Story {
     
   } // updateFlows()
 
-  // increase the number of bouncers if necessary
-  private void addBouncers(SpriteManager spriteManager) {
-    
-    if ( mFloxels.numFloxels(kMajorityType) < kMinorityPopulation ||
-         mFloxels.numFloxels(kMinorityType) < kMinorityPopulation/2 ) {
-      
-      mNewBouncerTimer = 0.0f;
-      
-    } else if ( mNewBouncerTimer > 0.0f ) {
-      
-      mNewBouncerTimer -= Env.TICK_TIME;
-      if ( mNewBouncerTimer <= 0.0f ) {
-        spriteManager.addSprite(new Bouncer(mMaze, mFloxels));
-//        Env.sounds().playSpawnSound();
-        mNewBouncerTimer = 0.0f;
-      }
-      
-    } else {
-
-      int num = 0;
-      for ( Sprite sp : spriteManager.list() ) {
-        if ( sp instanceof Bouncer ) num++;
-      }
-      if ( num < mMaxNumBouncers ) {
-        mNewBouncerTimer = Env.randomFloat(kBouncerDelayMin, kBouncerDelayMax);
-      }
-      
-    }
-    
-  } // addBouncers()
-  
   // tweak the difficulty for the level
   private void setLevelDifficulty() {
 
@@ -371,21 +288,15 @@ public class FloxelsStory extends Story {
     mMajorityPopulation = Math.min(mMajorityPopulation, 
                                    kMajorityPopulationMax);
     
-    if      ( mLevel <=  5 ) mMaxNumBouncers = 0;
-    else if ( mLevel <= 20 ) mMaxNumBouncers = 1;
-    else if ( mLevel <= 40 ) mMaxNumBouncers = 2;
-    else                     mMaxNumBouncers = 3;
-    
     if ( Env.debugMode() ) {
       Env.debug("Level " + mLevel 
                 + " (" + mMajorityPopulation
-                + " / " + mDifficultyFactor
-                + " / " + mMaxNumBouncers + ")");
+                + " / " + mDifficultyFactor + ")");
     }
     
   } // setLevelDifficulty()
   
-  // things to do on the first frame
+  // things to do when the game begins
   private void prepareNewStory(SpriteManager spriteManager) {
 
     prepareNewRoom(spriteManager);
@@ -397,15 +308,12 @@ public class FloxelsStory extends Story {
     
     mIntroTimer = kIntroDelay;
     mRestartTimer = 0.0f;
-    mStartleTimer = 0.0f;
-    mNewBouncerTimer = 0.0f;
-    mMegaBlastTimer = 0.0f;
     
     mReversed = false;
     
   } // prepareNewStory()
 
-  // add the sprites for a room
+  // initialization of sprites, etc.
   private void prepareNewRoom(SpriteManager spriteManager) {
 
     mMaze = Mazes.get(mMazeNum);
@@ -464,7 +372,8 @@ public class FloxelsStory extends Story {
   
   // reset the floxels to replay the level
   private void restartLevel(SpriteManager spriteManager) {
-    
+
+    mCursor.cancel();
     spriteManager.removeSprite(mCursor);
     mCursor = null;
     mRestartTimer = kRestartDelay;
@@ -496,10 +405,6 @@ public class FloxelsStory extends Story {
 
     growPopulation(spriteManager);
     
-    for ( Sprite sp : spriteManager.list() ) {
-      if ( sp instanceof Bouncer) ((Bouncer)sp).disappear();
-    }
-
     mMazeNum += 1;
     Maze nextMaze = Mazes.get(mMazeNum);
     mMaze.collectDifferences(nextMaze, mMazeDeltas);
@@ -523,10 +428,6 @@ public class FloxelsStory extends Story {
     mVentControls[0] = mVentControls[1];
     mVentControls[1] = temp;
 
-    for ( Sprite s : spriteManager.list() ) {
-      if ( s instanceof Summoner ) ((Summoner)s).switchFloxelType();
-    }
-    
   } // switchPopulations()
 
   // define the colours for the two populations
