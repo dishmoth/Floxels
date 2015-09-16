@@ -9,7 +9,6 @@ package com.dishmoth.floxels;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
-import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
@@ -31,8 +30,8 @@ public class FloxelPainter {
                                             { 150,  80, 250 } }; // purple 
 
   // details of different colour shades for floxel faces
-  static private final float  kFaceEdgeMaxWhiteness = 0.6f,
-                              kFaceFillMinBlackness = 0.05f;
+  static private final float  kFaceEdgeMaxWhiteness = 0.9f,
+                              kFaceFillMinBlackness = 0.0f;
   static private final int    kFacesFileMinNum      = 8,
                               kFacesFileMaxNum      = 22;
   static private final String kFacesImageFile       = "Faces";
@@ -152,8 +151,6 @@ public class FloxelPainter {
 
     splatImage.dispose();
 
-    //PixmapIO.writePNG(Gdx.files.external("pixmap.png"), mPixmap);
-
   } // constructor
 
   // create the pixels for one floxel face, including padding
@@ -166,7 +163,9 @@ public class FloxelPainter {
           b = kColours[colInd][2]/255.0f;
     
     final float shade = shadeInd/(Floxel.NUM_SHADES-1.0f);
-    final float hE = shade*kFaceEdgeMaxWhiteness;
+    final float shade2 = shade*shade;
+    
+    final float hE = shade2*kFaceEdgeMaxWhiteness;
     final float rE = (1-hE)*r + hE,
                 gE = (1-hE)*g + hE,
                 bE = (1-hE)*b + hE;

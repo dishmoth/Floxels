@@ -12,7 +12,7 @@ import java.util.Arrays;
 public class Clusters {
 
   // cluster scores range from 0 to maxClusterScore()
-  static public int maxClusterScore() { return 31; }
+  static public int maxClusterScore() { return 100; }
   
   // the object we're clustering for
   private final Flow mOwner;
@@ -63,7 +63,7 @@ public class Clusters {
     mXSize = mSubdivisions*mBaseXSize;
     mYSize = mSubdivisions*mBaseYSize;
     
-    mMaxClusterSize = numParticles;
+    mMaxClusterSize = Math.round(0.8f*numParticles);
     mClusterScoreScale = maxClusterScore() / Math.log(mMaxClusterSize);
     
     mData = new int[mYSize][mXSize];
