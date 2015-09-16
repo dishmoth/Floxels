@@ -128,7 +128,10 @@ public class FloxelsStory extends Story {
       assert( mCursor == null );
       if ( mIntroTimer <= 0.0f ) {
         int total = mMajorityPopulation + kMinorityPopulation;
-        mFloxels.releaseFloxels(0, total, 5.0f, 5.0f, 0.1f);
+        float x = Env.randomFloat(1.5f, Env.numTilesX()-1.5f),
+              y = Env.randomFloat(1.5f, Env.numTilesY()-1.5f),
+              r = 0.1f;
+        mFloxels.releaseFloxels(0, total, x, y, r);
         mRestartTimer = kRestartDelay;
         mIntroTimer = 0.0f;
         Env.sounds().play(Sounds.UNLEASH_BIG);
