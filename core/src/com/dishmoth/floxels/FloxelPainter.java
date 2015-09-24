@@ -15,20 +15,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 // class for drawing different types of floxels
 public class FloxelPainter {
 
-  // different base colours (red, green, blue from 0 to 255)
-  static private final int kColours[][] = { { 240, 185,   0 },   // orange
-                                            { 120, 120, 255 },   // blue
-                                            { 240, 100, 240 },   // pink
-                                            { 100, 220, 220 },   // cyan
-                                            { 255, 120, 110 },   // red
-                                            {  80, 240,  80 },   // green
-                                            { 230, 220,   0 },   // yellow
-                                            { 110, 170, 230 },   // light blue 
-                                            { 250, 110, 180 },   // cherry
-                                            {  90, 230, 150 },   // turquoise
-                                            { 255, 170,  50 },   // copper
-                                            { 150,  80, 250 } }; // purple 
-
   // details of different colour shades for floxel faces
   static private final float  kFaceEdgeMaxWhiteness = 0.9f,
                               kFaceFillMinBlackness = 0.0f;
@@ -78,9 +64,6 @@ public class FloxelPainter {
   // reference to the texture data
   private Texture mTexture;
   
-  // number of different colour sets
-  public static int numColours() { return kColours.length; }
-  
   // constructor
   public FloxelPainter(int targetSize) {
 
@@ -98,7 +81,7 @@ public class FloxelPainter {
       assert( facesImage.getWidth() == 7*mFaceTexSize );
     }
 
-    final int totalFaces = kColours.length * Floxel.NUM_SHADES
+    final int totalFaces = ColourScheme.num() * Floxel.NUM_SHADES
                            * Floxel.NUM_NORMAL_FACES;
     final int faceSizePadded = mFaceTexSize + 2*mFaceTexPadding;
     final int textureWidth = 1024;
@@ -113,7 +96,7 @@ public class FloxelPainter {
     
     int ix = 0,
         iy = 0;
-    for ( int iCol = 0 ; iCol < kColours.length ; iCol++ ) {
+    for ( int iCol = 0 ; iCol < ColourScheme.num() ; iCol++ ) {
       for ( int iShade = 0 ; iShade < Floxel.NUM_SHADES ; iShade++ ) {
         for ( int iFace = 0 ; iFace < Floxel.NUM_NORMAL_FACES ; iFace++ ) {
           prepareFace(iCol, iShade, iFace, 
@@ -140,11 +123,11 @@ public class FloxelPainter {
     mSplatTexSize = splatImage.getHeight();
     mSplatPixSize = Math.round(mSplatTexSize*targetSize/(float)splatSize);
     
-    mSplatPixmap = new Pixmap(kColours.length*(mSplatTexSize+2), 
+    mSplatPixmap = new Pixmap(ColourScheme.num()*(mSplatTexSize+2), 
                               (mSplatTexSize+2), 
                               Format.RGBA8888);
     
-    for ( int iCol = 0 ; iCol < kColours.length ; iCol++ ) {
+    for ( int iCol = 0 ; iCol < ColourScheme.num() ; iCol++ ) {
       int x = iCol*(mSplatTexSize+2);
       prepareSplat(iCol, x+1, 1, splatImage);
     }
@@ -158,9 +141,10 @@ public class FloxelPainter {
                            int x, int y, float edgeWidth,
                            Pixmap facesImage) {
     
-    float r = kColours[colInd][0]/255.0f,
-          g = kColours[colInd][1]/255.0f,
-          b = kColours[colInd][2]/255.0f;
+    int rgb[] = ColourScheme.colour(colInd);
+    float r = rgb[0]/255.0f,
+          g = rgb[1]/255.0f,
+          b = rgb[2]/255.0f;
     
     final float shade = shadeInd/(Floxel.NUM_SHADES-1.0f);
     final float shade2 = shade*shade;
@@ -214,12 +198,10 @@ public class FloxelPainter {
                                splatImage.getWidth()+2,
                                splatImage.getHeight()+2);
 
+    int rgb[] = ColourScheme.colour(colInd);
     colourCopyPixmap(mSplatPixmap,
-                     x, y,
-                     splatImage, 
-                     kColours[colInd][0]/255.0f,
-                     kColours[colInd][1]/255.0f,
-                     kColours[colInd][2]/255.0f);
+                     x, y, splatImage, 
+                     rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f);
     
     Pixmap.setBlending(oldMode);
     

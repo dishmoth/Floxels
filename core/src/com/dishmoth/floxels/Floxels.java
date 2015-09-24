@@ -191,7 +191,7 @@ public class Floxels extends Sprite {
   public void setFloxelColour(int type, int colour) {
     
     assert( type >= 0 && type < mTypeColours.length );
-    assert( colour >= 0 && colour < FloxelPainter.numColours() );
+    assert( colour >= 0 && colour < ColourScheme.num() );
     mTypeColours[type] = colour;
     
   } // setFloxelColour()

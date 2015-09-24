@@ -42,13 +42,14 @@ public class FloxelsStory extends Story {
                              kSpawnDelayFirst  = 1.1f;
   
   // references to some specific objects
-  private Background  mBackground;
-  private Flow        mFlows[];
-  private Floxels     mFloxels;
-  private Maze        mMaze;
-  private VentControl mVentControls[];
-  private Cursor      mCursor;
-  private Score       mScore;
+  private Background   mBackground;
+  private Flow         mFlows[];
+  private Floxels      mFloxels;
+  private Maze         mMaze;
+  private VentControl  mVentControls[];
+  private Cursor       mCursor;
+  private Score        mScore;
+  private ColourScheme mColourScheme;
   
   // player's current level (0, 1, 2, ...)
   private int mLevel;
@@ -324,6 +325,8 @@ public class FloxelsStory extends Story {
     mVentControls[kMajorityType].setHuntStrength(1.0f);
     mVentControls[kMinorityType].setHuntStrength(0.0f);
 
+    mColourScheme = new ColourScheme();
+    
   } // prepareNewSprites()
   
   // build a flow consistent with the maze
@@ -409,10 +412,9 @@ public class FloxelsStory extends Story {
   // define the colours for the two populations
   private void setFloxelColours() {
     
-    mFloxels.setFloxelColour(kMajorityType, 
-                             mLevel % FloxelPainter.numColours());
-    mFloxels.setFloxelColour(kMinorityType, 
-                             (mLevel+1) % FloxelPainter.numColours());
+    mColourScheme.advance();
+    mFloxels.setFloxelColour(kMajorityType, mColourScheme.oldIndex());
+    mFloxels.setFloxelColour(kMinorityType, mColourScheme.newIndex());
     
   } // setFloxelColours()
   
