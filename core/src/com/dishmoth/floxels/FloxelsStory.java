@@ -49,6 +49,7 @@ public class FloxelsStory extends Story {
   private VentControl  mVentControls[];
   private Cursor       mCursor;
   private Score        mScore;
+  private FrameRate    mFrameRate;
   private ColourScheme mColourScheme;
   
   // player's current level (0, 1, 2, ...)
@@ -148,7 +149,11 @@ public class FloxelsStory extends Story {
       assert( total == mMajorityPopulation + kMinorityPopulation );
     }
 
-    mScore.setCurrentValue(mFloxels.numFloxels(kMinorityType));
+    if ( mCursor != null ) {
+      int num = mCursor.numCaptured();
+      if ( !mCursor.summoning() ) num += mFloxels.numFloxels(kMinorityType);
+      mScore.set(num);
+    }
     
     // no change of story
     return null;
@@ -303,6 +308,9 @@ public class FloxelsStory extends Story {
     mScore = new Score();
     spriteManager.addSprite(mScore);
     
+    mFrameRate = new FrameRate();
+    spriteManager.addSprite(mFrameRate);
+    
     mFlows = new Flow[kNumTypes];
     for ( int k = 0 ; k < mFlows.length ; k++ ) {
       mFlows[k] = new Flow(Env.numTilesX(), Env.numTilesY(), 4);
@@ -355,6 +363,8 @@ public class FloxelsStory extends Story {
   // reset the floxels to replay the level
   private void restartLevel(SpriteManager spriteManager) {
 
+    mScore.set(0);
+    
     mCursor.cancel();
     spriteManager.removeSprite(mCursor);
     mCursor = null;
@@ -374,8 +384,8 @@ public class FloxelsStory extends Story {
     setLevelDifficulty();
 
     assert( mFloxels.numFloxels(kMajorityType) == 0 ); 
-    mScore.setCurrentValue( mFloxels.numFloxels(kMinorityType) );
-    mScore.fixBaseValue();
+    mScore.set( mFloxels.numFloxels(kMinorityType) );
+    mScore.bank();
 
     mCursor.cancel();
     spriteManager.removeSprite(mCursor);

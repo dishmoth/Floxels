@@ -20,6 +20,7 @@ public class Painter {
   private FloxelPainter mFloxelPainter;
   private MazePainter   mMazePainter;
   private HoopPainter   mHoopPainter;
+  private Fonts         mFonts;
   
   // raw image data
   private Pixmap mPixmap;
@@ -40,6 +41,7 @@ public class Painter {
     mFloxelPainter = null;
     mMazePainter   = null;
     mHoopPainter   = null;
+    mFonts         = null;
     
   } // constructor
     
@@ -89,6 +91,8 @@ public class Painter {
     mFloxelPainter.setTexture(mTexture, xFloxel,yFloxel, xSplat,ySplat);
     mMazePainter.setTexture(mTexture, xMaze, yMaze);
     mHoopPainter.setTexture(mMazePainter.wallTexture(true));
+
+    mFonts = new Fonts(tileWidth);
     
   } // prepare()
 
@@ -96,6 +100,7 @@ public class Painter {
   public FloxelPainter floxelPainter() { return mFloxelPainter; }
   public MazePainter   mazePainter()   { return mMazePainter; }
   public HoopPainter   hoopPainter()   { return mHoopPainter; }
+  public Fonts         fonts()         { return mFonts; }
   
   // discard resources
   public void dispose() {

@@ -25,10 +25,13 @@ public class Env {
   static private int kNumTilesX = 0,
                      kNumTilesY = 0;
   
-  // frame rate
+  // target frame rate
   static public final int   TICKS_PER_SEC = 30;
   static public final float TICK_TIME     = 1.0f/TICKS_PER_SEC;
 
+  // frame rate to display (percentage of required rate)
+  static private int kFrameRate = 0;
+  
   // label to use for debug logging
   private static final String kLogTag = "Floxels";
   
@@ -87,6 +90,10 @@ public class Env {
   // return the top-left corner of the game area
   static public int gameOffsetX() { return (Gdx.graphics.getWidth()-gameWidth())/2; }
   static public int gameOffsetY() { return (Gdx.graphics.getHeight()-gameHeight())/2; }
+
+  // measured frame rate
+  static public void setFrameRate(int percentage) { kFrameRate = percentage; }
+  static public int frameRate() { return kFrameRate; }
   
   // return reference to mouse monitor
   static public MouseMonitor mouse() { return kMouseMonitor; }

@@ -13,10 +13,14 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 class TimingStats {
 
   // show frame rate on screen
-  private static final boolean kOnscreenReport = true;
+  private static final boolean kOnscreenReport = false;
   
   // time between reports
-  private static final float kReportSeconds = 3.0f;
+  private static final float kReportSeconds    = 3.0f,
+                             kFpsReportSeconds = 1.0f;
+
+  // display the frame rate if it is consistently below this value
+  private static final int kFpsDisplayCutoff = 99;
   
   // assorted measurements
   private int   mNumUpdates;
@@ -24,8 +28,12 @@ class TimingStats {
                 mMinSeconds,
                 mMaxSeconds;
 
-  // value (average frames-per-second) to show on screen
-  private float mOnscreenValue;
+  // value (average frames-per-second as percentage) to show on screen
+  private int   mFpsUpdates,
+                mFpsValue,
+                mFpsValueOld1,
+                mFpsValueOld2;
+  private float mFpsSeconds;
   
   // font for on-screen frame rate
   private BitmapFont mFont = null;
@@ -33,11 +41,13 @@ class TimingStats {
   // constructor
   public TimingStats() { 
 
-    clear(); 
+    clear();
+    clearFps();
+
+    mFpsValue = mFpsValueOld1 = mFpsValueOld2 = 0;
     
     if ( kOnscreenReport ) {
       mFont = new BitmapFont();
-      mOnscreenValue = 0.0f;
     }
   
   } // constructor
@@ -50,10 +60,19 @@ class TimingStats {
     
   } // clear()
   
+  // reset fps counters
+  private void clearFps() {
+    
+    mFpsUpdates = 0;
+    mFpsSeconds = 0.0f;
+    
+  } // clearFps()
+  
   // update timing statistics after each tick 
   public void update(float seconds) {
     
     mTotalSeconds += seconds;
+    mFpsSeconds += seconds;
     
     if ( mNumUpdates == 0 ) {
       mMinSeconds = mMaxSeconds = seconds;
@@ -63,6 +82,7 @@ class TimingStats {
     }
     
     mNumUpdates++;
+    mFpsUpdates++;
     
     if ( mTotalSeconds > kReportSeconds ) {
       Env.debug( String.format("%.1f", mNumUpdates/mTotalSeconds)
@@ -73,8 +93,25 @@ class TimingStats {
                + "ms, max="
                + String.format("%.1f", 1000*mMaxSeconds)
                + "ms)" );
-      mOnscreenValue = mNumUpdates/mTotalSeconds;
       clear();
+    }
+
+    if ( mFpsSeconds >= kFpsReportSeconds ) {
+      mFpsValueOld2 = mFpsValueOld1;
+      mFpsValueOld1 = mFpsValue;
+      
+      mFpsValue = Math.round( 100 * (mFpsUpdates/mFpsSeconds) 
+                              / (2*Env.TICKS_PER_SEC) );
+
+      if ( mFpsValue     > 0 && mFpsValue     <= kFpsDisplayCutoff &&
+           mFpsValueOld1 > 0 && mFpsValueOld1 <= kFpsDisplayCutoff &&
+           mFpsValueOld2 > 0 && mFpsValueOld2 <= kFpsDisplayCutoff ) {
+        Env.setFrameRate(mFpsValue);
+      } else {
+        Env.setFrameRate(100);
+      }
+      
+      clearFps();
     }
     
   } // update()
@@ -82,11 +119,11 @@ class TimingStats {
   // show the frame rate on screen
   public void display(SpriteBatch batch) {
     
-    if ( !kOnscreenReport ) return;
-    
-    mFont.draw(batch, 
-               "fps: " + String.format("%.1f", mOnscreenValue), 
-               Env.gameOffsetX()+5, Env.gameOffsetY()+20);
+    if ( kOnscreenReport ) {
+      mFont.draw(batch, 
+                 "fps: " + mFpsValue + "%", 
+                 Env.gameOffsetX()+5, Env.gameOffsetY()+20);
+    }
 
   } // display
   

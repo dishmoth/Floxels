@@ -6,9 +6,6 @@
 
 package com.dishmoth.floxels;
 
-//import java.awt.Color;
-//import java.awt.Graphics2D;
-//import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -19,96 +16,120 @@ public class Score extends Sprite {
   // how this sprite is drawn relative to others
   private static final int kScreenLayer = 10;
   
-  // images of numbers
-  private static final int     kImageOffsets[] = {  0,  9, 18, 27, 35,
-                                                   45, 53, 62, 71, 80 },
-                               kImageWidths[]  = {  6,  6,  6,  5,  7, 
-                                                    5,  6,  6,  6,  6 };
-  private static int           kImageHeight    = 0;
-//  private static BufferedImage kImages[]       = null;
+  // position of the text (from top-left/top-right, relative to tile width)
+  private static final float kOffsetX = 0.09f,
+                             kOffsetY = 0.09f;
   
-  // position of the score (relative to bottom-left of game area)
-  private static final int kOffsetX = 6,
-                           kOffsetY = 7;
+  // time (seconds) for the score to be banked
+  private static final float kTransitionDelay = 0.6f,
+                             kTransitionTime  = 0.7f;
   
-  // score (base value plus current value)
-  private int mBaseValue,
+  // score (banked value and current value)
+  private int mBankValue,
               mValue;
 
-//  // prepare text images
-//  static public void initialize() {
-//
-//    if ( kImages != null ) return;
-//
-//    BufferedImage sourceImage = Env.resources().loadImage("Numbers.png");
-//    kImageHeight = sourceImage.getHeight();
-//    
-//    assert( kImageOffsets.length == kImageWidths.length );
-//    Color blankColour = new Color(0, 0, 0, 0);
-//    
-//    kImages = new BufferedImage[kImageOffsets.length];
-//    for ( int k = 0 ; k < kImages.length ; k++ ) {
-//      BufferedImage im = Env.createTranslucentImage(kImageWidths[k], 
-//                                                    kImageHeight);
-//      Graphics2D g2 = im.createGraphics();
-//      g2.setBackground(blankColour);
-//      g2.clearRect(0, 0, im.getWidth(), im.getHeight());
-//      g2.drawImage(sourceImage, -kImageOffsets[k], 0, null);
-//      g2.dispose();
-//      kImages[k] = im;
-//    }
-//    
-//  } // initialize()
+  // the numbers to display (banked and current)
+  private Text mBankText,
+               mText;
+  
+  // time remaining for the transition (or zero)
+  private float mTransitionTimer;
   
   // constructor
   public Score() {
     
     super(kScreenLayer);
     
-//    initialize();
-
-    reset();
+    int dx = Math.round(kOffsetX*Env.tileWidth()),
+        dy = Math.round(kOffsetY*Env.tileWidth());
+    int x1 = Env.gameOffsetX()+dx,
+        x2 = Env.gameOffsetX()+Env.gameWidth()-dx, 
+        y  = Env.gameOffsetY()+Env.gameHeight()-dy;
     
+    mText = new Text("12345", x1, y);
+    mText.translate(Math.round(x1-mText.xMin()), 
+                    Math.round(y-mText.yMax()));
+    mText.setColour(0.0f, 0.0f, 0.0f, 1.0f);
+    
+    mBankText = new Text("12345", x2, y);
+    mBankText.translate(Math.round(x2-mBankText.xMax()), 
+                        Math.round(y-mBankText.yMax()));
+    mBankText.setColour(0.0f, 0.0f, 0.0f, 1.0f);
+    
+    reset();
+
   } // constructor
 
   // set the score to zero
-  public void reset() { mBaseValue = mValue = 0; }
+  public void reset() { 
+    
+    mBankValue = mValue = 0;
+    mTransitionTimer = 0.0f;
+    update(); 
+    
+  } // reset()
+  
+  // change the text
+  private void update() {
+    
+    mText.set(Integer.toString(mValue));
+    
+    float xOld = mBankText.xMax();
+    mBankText.set(Integer.toString(mBankValue));
+    mBankText.translate(Math.round(xOld-mBankText.xMax()), 0.0f);
+    
+  } // update()
   
   // add the current value to the base value
-  public void fixBaseValue() { mBaseValue += mValue; mValue = 0; }
+  public void bank() {
+    
+    mTransitionTimer = kTransitionDelay + kTransitionTime;
+    
+  } // bank()
   
   // specify the current value
-  public void setCurrentValue(int v) { mValue = v; } 
+  public void set(int v) {
+    
+    if ( mValue != v ) {
+      assert( mTransitionTimer == 0.0f );
+      mValue = v;
+      update(); 
+    } 
+    
+  } // set()
   
-  // nothing to do here
+  // gradually move the score to the bank
   @Override
   public void advance(LinkedList<Sprite> addTheseSprites,
                       LinkedList<Sprite> killTheseSprites,
                       LinkedList<StoryEvent> newStoryEvents) {
+    
+    if ( mTransitionTimer > 0.0f ) {
+      float dt = Env.TICK_TIME;
+      mTransitionTimer -= dt;
+      if ( mTransitionTimer < kTransitionTime ) {
+        int n;
+        if ( mTransitionTimer <= 0.0f ) {
+          mTransitionTimer = 0.0f;
+          n = mValue;
+        } else {
+          n = Math.round(mValue*dt/(mTransitionTimer+dt));  
+        }
+        mValue -= n;
+        mBankValue += n;
+        update();
+      }
+    }
+    
   } // Sprite.advance()
 
   // display some numbers
   @Override
   public void draw(SpriteBatch batch) {
-
-    final int value = mBaseValue + mValue;
-    assert( value >= 0 );
-
-    final int x0 = Env.gameOffsetX() + kOffsetX,
-              y0 = Env.gameOffsetY() + Env.gameHeight() 
-                   - kImageHeight - kOffsetY;
-
-    int base = 10;
-    while ( base <= value ) base *= 10;
     
-    int x = x0;
-    while ( base > 1 ) {
-      base /= 10;
-      final int n = (value/base) % 10;
-      //g2.drawImage(kImages[n], x, y0, null);
-      x += kImageWidths[n];
-    }
-    
+    if ( mBankValue > 0 ) mBankText.draw(batch);
+    if ( mValue > 0 )     mText.draw(batch);
+
   } // Sprite.draw()
 
 } // class Score

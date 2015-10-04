@@ -154,6 +154,9 @@ public class Cursor extends Sprite implements SourceTerm {
   // the number of captured floxels
   public int numCaptured() { return mNumCaptured; }
   
+  // whether the cursor is is summoning mode
+  public boolean summoning() { return mSummoning; }
+  
   // update the cursor state and animate any captured floxels
   @Override
   public void advance(LinkedList<Sprite> addTheseSprites,
