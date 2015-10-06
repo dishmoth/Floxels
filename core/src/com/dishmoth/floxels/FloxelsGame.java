@@ -86,9 +86,11 @@ public class FloxelsGame implements ApplicationListener {
       ny = swap;
     }
     
+    Env.debug("Maze size: " + nx + "x" + ny);
     Env.setTilesXY(nx, ny);
     
     int tile = Math.min(width/Env.numTilesX(), height/Env.numTilesY());
+    Env.debug("Tile size: " + tile + " pixels");
     Env.setTileWidth(tile);
     
 	} // chooseTileDimensions()

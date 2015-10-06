@@ -68,11 +68,13 @@ public class FloxelPainter {
   public FloxelPainter(int targetSize) {
 
     // prepare the faces
-    
+
     mFacePixSize = targetSize;
     mFaceTexSize = Math.min(mFacePixSize, kFacesFileMaxNum);
     mFaceTexPadding = (mFacePixSize > mFaceTexSize) ? 1 : 0;
 
+    Env.debug("Floxel size: " + mFacePixSize + " pixels");
+    
     Pixmap facesImage = null;
     if ( mFaceTexSize >= kFacesFileMinNum ) {
       String fname = kFacesImageFile + mFaceTexSize + ".png";

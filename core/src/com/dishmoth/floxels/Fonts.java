@@ -13,10 +13,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 public class Fonts {
 
   // available font sizes
-  private static final int kFontSizes[] = { 8, 12, 30 };
+  private static final int kFontSizes[] = { 7, 8, 9, 
+                                            10, 11, 12, 14, 16, 18,
+                                            20, 30 };
   
   // relative size of the fonts
-  private static final float kSmallFontScale = 12/66.0f;
+  private static final float kSmallFontScale = 0.20f;
   
   // font objects
   private BitmapFont mSmallFont;
@@ -24,25 +26,26 @@ public class Fonts {
   // constructor
   public Fonts(int tileWidth) {
     
-    int smallFontSize = Math.round(kSmallFontScale*tileWidth);
+    float smallFontSize = kSmallFontScale*tileWidth;
     mSmallFont = pickNearestFont(smallFontSize);
     
   } // constructor
   
   // choose the nearest font to the requested size
-  private BitmapFont pickNearestFont(int size) {
+  private BitmapFont pickNearestFont(float size) {
     
     int bestSize = -1;
-    int bestDelta = Integer.MAX_VALUE;
+    float bestDelta = Float.MAX_VALUE;
     for ( int k = 0 ; k < kFontSizes.length ; k++ ) {
-      int delta = Math.abs( size - kFontSizes[k] );
+      float delta = Math.abs( size - kFontSizes[k] );
       if ( delta < bestDelta ) {
         bestDelta = delta;
         bestSize = kFontSizes[k];
       }
     }
     
-    String fileName = "calibri" + bestSize  + ".fnt"; 
+    String fileName = "calibri" + bestSize  + ".fnt";
+    Env.debug("Using font: " + fileName);
     return new BitmapFont(Gdx.files.internal(fileName));
     
   } // pickNearestFont();
