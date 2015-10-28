@@ -6,9 +6,7 @@
 
 package com.dishmoth.floxels;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -23,6 +21,9 @@ public class MazePainter {
   
   // how tightly walls turn at corners
   private static final float kBendRadius = 0.5f;
+
+  // allow for nice cornering by fiddly the maths some distance from the wall
+  private static final float kSmoothRadius = 0.4f;
   
   // how white the walls are
   private static final float kWhiteness = 0.85f;
@@ -30,7 +31,7 @@ public class MazePainter {
   // number of corner sections (including all flips/rotations)
   private static final int kNumCorners = 15;
   
-  // width of the walls in the texture data
+  // width of the walls in the texture data (including 1-texel boundary)
   private final int mPixmapSize;
   
   // distances (0.0 to 1.0) from the wall at which the colours change 
@@ -62,6 +63,9 @@ public class MazePainter {
   public MazePainter(int targetSize) {
     
     assert( targetSize > 0 );
+    
+    assert( kBendRadius > 0.0f && kBendRadius < 1.0f );
+    assert( kSmoothRadius >= 0.0f && kSmoothRadius < kBendRadius );
 
     targetSize = Math.max(targetSize, kMinPixmapSize);
     final int coreWidth = Math.round(Math.min(targetSize,kMaxPixmapSize)/5.0f);
@@ -166,17 +170,29 @@ public class MazePainter {
 
     float u = 1.0f - x,
           v = 1.0f - y;
-    if ( u <= v*(1-kBendRadius) ) return y;
-    if ( v <= u*(1-kBendRadius) ) return x;
+    if ( u*u + v*v <= kSmoothRadius*kSmoothRadius ) {
+      float d = 1.0f - (float)Math.sqrt(u*u+v*v);
+      return d;
+    }
+    
+    float t = kSmoothRadius*(kBendRadius-1)/(kSmoothRadius-kBendRadius);
+    float p = (u+t)/(1+t),
+          q = (v+t)/(1+t);
+    float s = kBendRadius/(1+t);
+    
+    if ( p <= q*(1-s) ) return y;
+    if ( q <= p*(1-s) ) return x;
 
-    // solve: ||alpha*(u,v) - (1-r)*(1,1)|| = r
+    // solve: ||alpha*(p,q) - (1-s)*(1,1)|| = s
     // alpha=1 => on the bend (distance 0)
     // alpha=inf => in the far corner (distance 1)
-    float a = u*u + v*v,
-          b = -2*(1-kBendRadius)*(u+v),
-          c = kBendRadius*kBendRadius - 4*kBendRadius + 2;
-    float alpha = (-b + (float)Math.sqrt(b*b-4*a*c))/(2*a);
-    return ( 1.0f - 1.0f/alpha );
+    float A = p*p + q*q,
+          B = -2*(1-s)*(p+q),
+          C = s*s - 4*s + 2;
+    float alpha = (-B + (float)Math.sqrt(B*B-4*A*C))/(2*A);
+    float d = (1 - 1/alpha)*(1+t);
+    
+    return d;
     
   } // calcBend()
   
