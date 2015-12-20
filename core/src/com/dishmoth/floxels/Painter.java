@@ -6,11 +6,13 @@
 
 package com.dishmoth.floxels;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 
 // store of textures, etc. for painting assorted things
@@ -20,12 +22,13 @@ public class Painter {
   private FloxelPainter mFloxelPainter;
   private MazePainter   mMazePainter;
   private HoopPainter   mHoopPainter;
+  private TitlePainter  mTitlePainter;
   private Fonts         mFonts;
   
   // raw image data
   private Pixmap mPixmap;
   
-  // texture data
+  // texture data for floxels, maze, hoops, etc.
   private Texture mTexture;
   
   // Screen 2048x1536 => tiles 11x9  => tile 166 => floxel 31
@@ -41,6 +44,7 @@ public class Painter {
     mFloxelPainter = null;
     mMazePainter   = null;
     mHoopPainter   = null;
+    mTitlePainter  = null;
     mFonts         = null;
     
   } // constructor
@@ -92,6 +96,8 @@ public class Painter {
     mMazePainter.setTexture(mTexture, xMaze, yMaze);
     mHoopPainter.setTexture(mMazePainter.wallTexture(true));
 
+    mTitlePainter = new TitlePainter();
+    
     mFonts = new Fonts(tileWidth);
     
   } // prepare()
@@ -100,6 +106,7 @@ public class Painter {
   public FloxelPainter floxelPainter() { return mFloxelPainter; }
   public MazePainter   mazePainter()   { return mMazePainter; }
   public HoopPainter   hoopPainter()   { return mHoopPainter; }
+  public TitlePainter  titlePainter()  { return mTitlePainter; }
   public Fonts         fonts()         { return mFonts; }
   
   // discard resources

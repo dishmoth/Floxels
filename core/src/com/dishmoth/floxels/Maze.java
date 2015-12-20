@@ -24,7 +24,7 @@ public class Maze extends Sprite {
   private static final float kChangeDelay      = 0.015f,
                              kChangeFirstDelay = 1.0f;
   
-  // current maze number
+  // current maze number (-1 for title screen)
   private int mMazeNum;
   
   // the underlying maze structure
@@ -37,12 +37,11 @@ public class Maze extends Sprite {
   private float mChangeTimer;
   
   // constructor
-  public Maze(int num) {
+  public Maze() {
 
     super(kScreenLayer);
 
-    assert( num >= 0 );
-    mMazeNum = num;
+    mMazeNum = -1;
     
     mMazeData = Mazes.get(mMazeNum);
 

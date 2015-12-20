@@ -111,6 +111,7 @@ public class Text {
   public void setColour(float r, float g, float b, float alpha) {
     
     mText.setColor(r, g, b, alpha);
+    mText.setColors(r, g, b, alpha);
     
   } // setColour()
   

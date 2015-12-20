@@ -35,7 +35,7 @@ public class FloxelsStory extends Story {
   static private final int   kFleeResignNum        = 10;
 
   // seconds until various events occur
-  static private final float kIntroDelay       = 0.9f,
+  static private final float kIntroDelay       = 0.5f,
                              kRestartDelay     = 1.5f,
                              kRestartLongDelay = 2.0f,
                              kSpawnDelay       = 0.15f,
@@ -91,6 +91,15 @@ public class FloxelsStory extends Story {
         it.remove();
       } // Story.EventGameBegins
 
+      if ( event instanceof LaunchCursor.EventComplete ) {
+        TitleImage titleImage = 
+              (TitleImage)spriteManager.findSpriteOfType(TitleImage.class);
+        titleImage.fade();
+        mRestartTimer = kRestartLongDelay;
+        mMaze.changeToNext();
+        it.remove();
+      } // LaunchCursor.EventComplete
+      
       if ( event instanceof Floxels.EventPopulationDestroyed ) {
         if ( mFloxels.numFloxels(kMajorityType) == 0 ) {
           newLevel(spriteManager);
@@ -130,18 +139,15 @@ public class FloxelsStory extends Story {
       assert( mCursor == null );
       if ( mIntroTimer <= 0.0f ) {
         int total = mMajorityPopulation + kMinorityPopulation;
-        float x = Env.randomFloat(1.5f, Env.numTilesX()-1.5f),
-              y = Env.randomFloat(1.5f, Env.numTilesY()-1.5f),
-              r = 0.1f;
-        mFloxels.releaseFloxels(0, total, x, y, r);
-        mRestartTimer = kRestartDelay;
+        spriteManager.addSprite(new LaunchCursor(total, 
+                                                 kMajorityType, mFloxels));
         mIntroTimer = 0.0f;
-        Env.sounds().play(Sounds.UNLEASH_BIG);
       }
     }
 
     // sanity check
     if ( mIntroTimer == 0 &&
+         spriteManager.findSpriteOfType(LaunchCursor.class) == null &&
          spriteManager.findSpriteOfType(Spawner.class) == null ) {
       int total = mFloxels.numFloxels(kMajorityType)
                 + mFloxels.numFloxels(kMinorityType)
@@ -301,8 +307,7 @@ public class FloxelsStory extends Story {
     mBackground = new Background();
     spriteManager.addSprite(mBackground);
 
-    final int firstMazeNum = 0;
-    mMaze = new Maze(firstMazeNum);
+    mMaze = new Maze();
     spriteManager.addSprite(mMaze);
 
     mScore = new Score();
@@ -334,7 +339,9 @@ public class FloxelsStory extends Story {
     mVentControls[kMinorityType].setHuntStrength(0.0f);
 
     mColourScheme = new ColourScheme();
-    
+
+    spriteManager.addSprite(new TitleImage());
+        
   } // prepareNewSprites()
   
   // build a flow consistent with the maze
@@ -380,17 +387,19 @@ public class FloxelsStory extends Story {
   // introduce a new population for the next level
   private void newLevel(SpriteManager spriteManager) {
 
-    mLevel += 1;
-    setLevelDifficulty();
-
-    assert( mFloxels.numFloxels(kMajorityType) == 0 ); 
-    mScore.set( mFloxels.numFloxels(kMinorityType) );
-    mScore.bank();
-
     mCursor.cancel();
     spriteManager.removeSprite(mCursor);
     mCursor = null;
     
+    assert( mFloxels.numFloxels(kMajorityType) == 0 );
+    assert( mFloxels.numFloxels(kMinorityType)  
+                      == mMajorityPopulation + kMinorityPopulation );
+    mScore.set( mFloxels.numFloxels(kMinorityType) );
+    mScore.bank();
+
+    mLevel += 1;
+    setLevelDifficulty();
+
     switchPopulations(spriteManager);
     
     mRestartTimer = kRestartLongDelay;
