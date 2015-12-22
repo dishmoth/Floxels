@@ -20,9 +20,9 @@ public class Maze extends Sprite {
   // how this sprite is drawn relative to others
   private static final int kScreenLayer = 5;
 
-  // seconds until the next maze change
-  private static final float kChangeDelay      = 0.015f,
-                             kChangeFirstDelay = 1.0f;
+  // seconds until the change starts, and how long it takes
+  private static final float kChangeInitialDelay = 1.0f,
+                             kChangeMorphDelay   = 1.0f;
   
   // current maze number (-1 for title screen)
   private int mMazeNum;
@@ -32,8 +32,11 @@ public class Maze extends Sprite {
   
   // when changing the maze, these are the changes remaining to be made
   private LinkedList<MazeData.Delta> mDeltas;
+
+  // total number of changes that need to be made
+  private int mNumDeltas;
   
-  // seconds until the next maze alteration (or zero)
+  // seconds until the maze changes start (or zero)
   private float mChangeTimer;
   
   // constructor
@@ -46,6 +49,7 @@ public class Maze extends Sprite {
     mMazeData = Mazes.get(mMazeNum);
 
     mDeltas = new LinkedList<MazeData.Delta>();
+    mNumDeltas = 0;
     mChangeTimer = 0.0f;
     
   } // constructor
@@ -56,13 +60,16 @@ public class Maze extends Sprite {
   // start the transformation to the next maze
   public void changeToNext() {
   
+    assert( mDeltas.isEmpty() );
+    assert( mChangeTimer == 0.0f );
+
     mMazeNum += 1;
 
-    assert( mDeltas.isEmpty() );
     MazeData nextMaze = Mazes.get(mMazeNum);
     mMazeData.collectDifferences(nextMaze, mDeltas);
-    mChangeTimer = kChangeFirstDelay;
-        
+    mNumDeltas = mDeltas.size();
+    mChangeTimer = kChangeInitialDelay + kChangeMorphDelay;
+    
   } // changeToNext()
 
   // whether the maze is currently changing
@@ -73,21 +80,22 @@ public class Maze extends Sprite {
   public void advance(LinkedList<Sprite>     addTheseSprites,
                       LinkedList<Sprite>     killTheseSprites,
                       LinkedList<StoryEvent> newStoryEvents) {
-    
+
     if ( mChangeTimer > 0.0f ) {
-      mChangeTimer -= Env.TICK_TIME;
-      boolean changed = false;
-      while ( mChangeTimer <= 0.0f ) {
-        mMazeData.applyDifference(mDeltas.pop());
-        changed = true;
-        if ( mDeltas.isEmpty() ) {
-          mChangeTimer = 0.0f;
-          break;
-        } else {
-          mChangeTimer += kChangeDelay;
+
+      mChangeTimer = Math.max( mChangeTimer-Env.TICK_TIME, 0.0f );
+      
+      if ( mChangeTimer < kChangeMorphDelay ) {
+        int numLeft = Math.round( mNumDeltas*mChangeTimer/kChangeMorphDelay );
+        while ( mDeltas.size() > numLeft ) {
+          mMazeData.applyDifference(mDeltas.pop());
         }
+        if ( mChangeTimer + Env.TICK_TIME >= kChangeMorphDelay ) {
+          Env.sounds().play(Sounds.MAZE_MORPH);
+        }
+        newStoryEvents.add( new EventMazeChanged() );
       }
-      if ( changed ) newStoryEvents.add( new EventMazeChanged() );
+
     }
     
   } // Sprite.advance()

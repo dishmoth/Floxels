@@ -111,7 +111,7 @@ public class Sounds {
     loadSound(UNLEASH, "unleash.ogg");
     loadSound(UNLEASH_BIG, "unleash_big.ogg");
     loadSound(REVERSAL, "reversal.ogg");
-    loadSound(MAZE_MORPH, "morph.ogg");
+    loadSound(MAZE_MORPH, "maze_morph.wav");
     loadSound(SUMMON_A, "summon_A.wav");
     loadSound(SUMMON_B, "summon_B.wav");
     loadSound(SUMMON_C, "summon_C.wav");
