@@ -16,6 +16,9 @@ import com.badlogic.gdx.utils.Array;
 // object holding some text to display on the screen
 public class Text {
 
+  // different font sizes
+  public enum TextSize { SMALL, MEDIUM };
+  
   // the main text object
   private BitmapFontCache mText;
   
@@ -36,9 +39,11 @@ public class Text {
                                                 : null;
   
   // constructor
-  public Text(String string, int x, int y) {
+  public Text(String string, int x, int y, TextSize size) {
     
-    mText = new BitmapFontCache( Env.painter().fonts().smallFont() );
+    mText = new BitmapFontCache( (size == TextSize.SMALL) 
+                                 ? Env.painter().fonts().smallFont()
+                                 : Env.painter().fonts().mediumFont() );
     
     mXPos = x;
     mYPos = y;
@@ -68,7 +73,7 @@ public class Text {
       GlyphLayout layout = layouts.get(n);
       for ( int k = 0 ; k < layout.runs.size ; k++ ) {
         Array<Glyph> glyphs = layout.runs.get(k).glyphs;
-        for (int ii = 0, nn = glyphs.size; ii < nn; ii++) {
+        for ( int ii = 0, nn = glyphs.size; ii < nn; ii++ ) {
           verticesSize += 20;
         }
       }

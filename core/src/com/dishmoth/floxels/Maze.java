@@ -39,6 +39,13 @@ public class Maze extends Sprite {
   // seconds until the maze changes start (or zero)
   private float mChangeTimer;
   
+  // time (seconds) for the maze to change
+  static public float changeTime() {
+    
+    return (kChangeInitialDelay + kChangeMorphDelay);
+    
+  } // Maze.changeTime()
+  
   // constructor
   public Maze() {
 

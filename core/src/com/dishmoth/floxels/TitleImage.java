@@ -51,7 +51,7 @@ public class TitleImage extends Sprite {
     
     super(kScreenLayer);
     
-    mText = new Text("by dishmoth", 50, 50);
+    mText = new Text("by dishmoth", 50, 50, Text.TextSize.SMALL);
     mText.setColour(0.0f, 0.0f, 0.0f, 1.0f);
     
     mImageWidth = Math.round( kSize*Env.tileWidth() );

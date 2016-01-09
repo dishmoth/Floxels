@@ -11,6 +11,12 @@ import java.util.*;
 // controlling class for the game
 public class FloxelsStory extends Story {
   
+  // description of the majority population
+  static private final String kDescriptions[] = { "Evil", "Treacherous",
+                                                  "Corrupt",
+                                                  "Tyranical", "Decadent", 
+                                                  "Bigoted", "Heretical" };
+  
   // enumeration of population types
   static private final int kMajorityType = 0,
                            kMinorityType = 1;
@@ -35,11 +41,11 @@ public class FloxelsStory extends Story {
   static private final int   kFleeResignNum        = 10;
 
   // seconds until various events occur
-  static private final float kIntroDelay       = 0.5f,
-                             kRestartDelay     = 1.5f,
-                             kRestartLongDelay = 2.0f,
-                             kSpawnDelay       = 0.15f,
-                             kSpawnDelayFirst  = 1.1f;
+  static private final float kIntroDelay          = 0.5f,
+                             kRestartDelay        = 2.0f,
+                             kRestartInitialDelay = 0.5f,
+                             kSpawnDelay          = 0.15f,
+                             kSpawnDelayFirst     = 1.1f;
   
   // references to some specific objects
   private Background   mBackground;
@@ -92,13 +98,17 @@ public class FloxelsStory extends Story {
       } // Story.EventGameBegins
 
       if ( event instanceof LaunchCursor.EventComplete ) {
-        TitleImage titleImage = 
-              (TitleImage)spriteManager.findSpriteOfType(TitleImage.class);
-        titleImage.fade();
-        mRestartTimer = kRestartLongDelay;
+        mRestartTimer = kRestartInitialDelay;
+        fadeText(spriteManager);
+        addInstructions(spriteManager, Maze.changeTime());
         mMaze.changeToNext();
         it.remove();
       } // LaunchCursor.EventComplete
+      
+      if ( event instanceof Cursor.EventFloxelsSummoned ) {
+        fadeText(spriteManager);
+        it.remove();
+      } // LaunchCursor.EventFloxelsSummoned
       
       if ( event instanceof Floxels.EventPopulationDestroyed ) {
         if ( mFloxels.numFloxels(kMajorityType) == 0 ) {
@@ -341,7 +351,9 @@ public class FloxelsStory extends Story {
     mColourScheme = new ColourScheme();
 
     spriteManager.addSprite(new TitleImage());
-        
+    spriteManager.addSprite(new TextObject("Touch to Start", 
+                                           2.8f, false, 0.0f));
+    
   } // prepareNewSprites()
   
   // build a flow consistent with the maze
@@ -375,7 +387,9 @@ public class FloxelsStory extends Story {
     mCursor.cancel();
     spriteManager.removeSprite(mCursor);
     mCursor = null;
+
     mRestartTimer = kRestartDelay;
+    addInstructions(spriteManager, kRestartDelay-0.6f);
 
     mVentControls[kMajorityType].setHuntStrength(1.0f);
     mVentControls[kMinorityType].setHuntStrength(0.0f);
@@ -402,8 +416,9 @@ public class FloxelsStory extends Story {
 
     switchPopulations(spriteManager);
     
-    mRestartTimer = kRestartLongDelay;
-
+    mRestartTimer = kRestartInitialDelay;
+    addInstructions(spriteManager, Maze.changeTime());
+    
     growPopulation(spriteManager);
     
     mMaze.changeToNext();
@@ -476,5 +491,34 @@ public class FloxelsStory extends Story {
     }
     
   } // growPopulation()
+  
+  // remove any text or title objects
+  private void fadeText(SpriteManager spriteManager) {
+
+    for ( Sprite sp : spriteManager.list() ) {
+      if ( sp instanceof TitleImage ) {
+        ((TitleImage)sp).fade(); 
+      } else if ( sp instanceof TextObject ) {
+        ((TextObject)sp).fade(); 
+      }
+    }
+    
+  } // fadeText()
+
+  // display some text
+  private void addInstructions(SpriteManager spriteManager, float delay) {
+    
+    String name = ColourScheme.name( mColourScheme.oldIndex() );
+    String description = kDescriptions[ mLevel % kDescriptions.length ];
+    
+    float y0 = 0.5f*Env.numTilesY(),
+          dy = 0.75f;
+    spriteManager.addSprite(new TextObject("Overthrow the " + description 
+                                           + " " + name, 
+                                           y0+dy, true, delay));
+    spriteManager.addSprite(new TextObject("Press & Drag to Command", 
+                                           y0-dy, true, delay));
+    
+  } // addInstructions()
   
 } // class FloxelsStory

@@ -46,12 +46,12 @@ public class Score extends Sprite {
         x2 = Env.gameOffsetX()+Env.gameWidth()-dx, 
         y  = Env.gameOffsetY()+Env.gameHeight()-dy;
     
-    mText = new Text("12345", x1, y);
+    mText = new Text("12345", x1, y, Text.TextSize.SMALL);
     mText.translate(Math.round(x1-mText.xMin()), 
                     Math.round(y-mText.yMax()));
     mText.setColour(0.0f, 0.0f, 0.0f, 1.0f);
     
-    mBankText = new Text("12345", x2, y);
+    mBankText = new Text("12345", x2, y, Text.TextSize.SMALL);
     mBankText.translate(Math.round(x2-mBankText.xMax()), 
                         Math.round(y-mBankText.yMax()));
     mBankText.setColour(0.0f, 0.0f, 0.0f, 1.0f);

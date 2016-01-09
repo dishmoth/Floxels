@@ -13,6 +13,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 // the player's cursor, for catching and releasing floxels 
 public class Cursor extends Sprite implements SourceTerm {
 
+  // story event: floxels summoned
+  public static class EventFloxelsSummoned extends StoryEvent {
+  } // LaunchCursor.EventFloxelsSummoned
+
   // how sprite is displayed relative to others
   static private final int kScreenLayer = 70; 
 
@@ -256,6 +260,11 @@ public class Cursor extends Sprite implements SourceTerm {
         }
       } else {
         mFocus = Math.min(1.0f, mFocus+dt*kFocusRate);
+        if ( mFocus == 1.0f ) {
+          if ( mSummoning && mInitialSummons ) {
+            newStoryEvents.add(new EventFloxelsSummoned());
+          }
+        }
       }
     } else {
       // button released

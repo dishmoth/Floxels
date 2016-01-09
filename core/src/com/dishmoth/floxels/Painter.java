@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 
@@ -23,6 +24,7 @@ public class Painter {
   private MazePainter   mMazePainter;
   private HoopPainter   mHoopPainter;
   private TitlePainter  mTitlePainter;
+  private PatchPainter  mPatchPainter;
   private Fonts         mFonts;
   
   // raw image data
@@ -45,6 +47,7 @@ public class Painter {
     mMazePainter   = null;
     mHoopPainter   = null;
     mTitlePainter  = null;
+    mPatchPainter  = null;
     mFonts         = null;
     
   } // constructor
@@ -58,15 +61,18 @@ public class Painter {
     mFloxelPainter = new FloxelPainter(floxelSize);
     mMazePainter   = new MazePainter(mazeSize);
     mHoopPainter   = new HoopPainter(tileWidth);
+    mPatchPainter  = new PatchPainter(tileWidth);
 
     Pixmap floxelPixmap = mFloxelPainter.floxelPixmap();
     Pixmap splatPixmap  = mFloxelPainter.splatPixmap();
     Pixmap mazePixmap   = mMazePainter.pixmap();
+    Pixmap patchPixmap  = mPatchPainter.pixmap();
     
     final int textureMinWidth  = floxelPixmap.getWidth(),
               textureMinHeight = floxelPixmap.getHeight()
                                  + splatPixmap.getHeight()
-                                 + mazePixmap.getHeight();
+                                 + Math.max( mazePixmap.getHeight(),
+                                             patchPixmap.getHeight() );
     final int textureWidth  = MathUtils.nextPowerOfTwo(textureMinWidth), 
               textureHeight = MathUtils.nextPowerOfTwo(textureMinHeight);
     mPixmap = new Pixmap(textureWidth, textureHeight, Format.RGBA8888);
@@ -76,7 +82,9 @@ public class Painter {
               xSplat  = 0,
               ySplat  = yFloxel + floxelPixmap.getHeight(),
               xMaze   = 0,
-              yMaze   = ySplat + splatPixmap.getHeight();
+              yMaze   = ySplat + splatPixmap.getHeight(),
+              xPatch  = xMaze + mazePixmap.getWidth(),
+              yPatch  = yMaze;
     
     Pixmap.Blending oldMode = Pixmap.getBlending();
     Pixmap.setBlending(Pixmap.Blending.None);
@@ -84,6 +92,7 @@ public class Painter {
     mPixmap.drawPixmap(floxelPixmap, xFloxel, yFloxel);
     mPixmap.drawPixmap(splatPixmap,  xSplat, ySplat);
     mPixmap.drawPixmap(mazePixmap, xMaze, yMaze);
+    mPixmap.drawPixmap(patchPixmap, xPatch, yPatch);
     
     Pixmap.setBlending(oldMode);
     
@@ -95,6 +104,7 @@ public class Painter {
     mFloxelPainter.setTexture(mTexture, xFloxel,yFloxel, xSplat,ySplat);
     mMazePainter.setTexture(mTexture, xMaze, yMaze);
     mHoopPainter.setTexture(mMazePainter.wallTexture(true));
+    mPatchPainter.setTexture(mTexture, xPatch, yPatch);
 
     mTitlePainter = new TitlePainter();
     
@@ -107,6 +117,7 @@ public class Painter {
   public MazePainter   mazePainter()   { return mMazePainter; }
   public HoopPainter   hoopPainter()   { return mHoopPainter; }
   public TitlePainter  titlePainter()  { return mTitlePainter; }
+  public PatchPainter  patchPainter()  { return mPatchPainter; }
   public Fonts         fonts()         { return mFonts; }
   
   // discard resources

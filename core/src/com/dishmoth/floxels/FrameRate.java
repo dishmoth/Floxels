@@ -38,7 +38,7 @@ public class FrameRate extends Sprite {
     int x0 = Env.gameOffsetX()+Env.gameWidth()-dx,
         y0 = Env.gameOffsetY()+dy;
     
-    mText = new Text("Slow: 55%", x0, y0);
+    mText = new Text("Slow: 55%", x0, y0, Text.TextSize.SMALL);
     mText.translate(Math.round(x0-mText.xMax()), 
                     Math.round(y0-mText.yMin()));
     

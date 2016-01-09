@@ -19,9 +19,20 @@ public class ColourScheme {
                                             { 166,  86, 247 },   // purple
                                             { 250, 110, 180 } }; // pink
   
+  // names of the populations
+  static private final String kNames[] = { "Reds",
+                                           "Oranges",
+                                           "Yellows",
+                                           "Greens",
+                                           "Teals",
+                                           "Blues",
+                                           "Purples",
+                                           "Pinks" };
+  
   // access the different colours
   static public int num() { return kColours.length; }
   static public int[] colour(int index) { return kColours[index]; }
+  static public String name(int index) { return kNames[index]; }
   
   // colours of the floxel populations
   private int mNewIndex,
