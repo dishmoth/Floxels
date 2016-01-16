@@ -13,9 +13,13 @@ public class FloxelsStory extends Story {
   
   // description of the majority population
   static private final String kDescriptions[] = { "Evil", "Treacherous",
-                                                  "Corrupt",
-                                                  "Tyranical", "Decadent", 
-                                                  "Bigoted", "Heretical" };
+                                                  "Brutal", "Decadent",
+                                                  "Tyrannical", "Heretical",
+                                                  "Vile", "Barbaric",
+                                                  "Sinful", "Repressive",
+                                                  "Godless", "Foul", 
+                                                  "Wicked", "Immoral",
+                                                  "Corrupt" };
   
   // enumeration of population types
   static private final int kMajorityType = 0,

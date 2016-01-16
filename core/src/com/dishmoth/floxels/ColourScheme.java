@@ -24,7 +24,7 @@ public class ColourScheme {
                                            "Oranges",
                                            "Yellows",
                                            "Greens",
-                                           "Teals",
+                                           "Turquoises",
                                            "Blues",
                                            "Purples",
                                            "Pinks" };
