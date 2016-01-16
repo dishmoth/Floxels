@@ -8,6 +8,9 @@ package com.dishmoth.floxels;
 
 import java.util.*;
 
+import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.Gdx;
+
 // controlling class for the game
 public class FloxelsStory extends Story {
   
@@ -355,7 +358,8 @@ public class FloxelsStory extends Story {
     mColourScheme = new ColourScheme();
 
     spriteManager.addSprite(new TitleImage());
-    spriteManager.addSprite(new TextObject("Touch to Start", 
+    spriteManager.addSprite(new TextObject((Env.touchScreen()?"Touch":"Click")
+                                           + " to Start", 
                                            2.8f, false, 0.0f));
     
   } // prepareNewSprites()
@@ -520,7 +524,8 @@ public class FloxelsStory extends Story {
     spriteManager.addSprite(new TextObject("Overthrow the " + description 
                                            + " " + name, 
                                            y0+dy, true, delay));
-    spriteManager.addSprite(new TextObject("Press & Drag to Command", 
+    spriteManager.addSprite(new TextObject((Env.touchScreen()?"Press":"Click")
+                                           + " & Drag to Command", 
                                            y0-dy, true, delay));
     
   } // addInstructions()

@@ -9,6 +9,7 @@ package com.dishmoth.floxels;
 import java.util.*;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Application.ApplicationType;
 
 public class Env {
 
@@ -95,13 +96,19 @@ public class Env {
   static public void setFrameRate(int percentage) { kFrameRate = percentage; }
   static public int frameRate() { return kFrameRate; }
   
+  // whether the game is running on a touch-screen device
+  static public boolean touchScreen() {
+    return ( Gdx.app.getType() == ApplicationType.Android 
+          || Gdx.app.getType() == ApplicationType.iOS );
+  } // touchScreen()
+  
   // return reference to mouse monitor
   static public MouseMonitor mouse() { return kMouseMonitor; }
   
   // return reference to game audio
   static public Sounds sounds() { return kSounds; }
 
-  //
+  // collection of classes for drawing stuff
   static public Painter painter() { return kPainter; }
   
   // end the game, close the window (could be done better?)
