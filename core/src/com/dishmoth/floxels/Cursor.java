@@ -192,11 +192,7 @@ public class Cursor extends Sprite implements SourceTerm {
       // keep the last position
     } else {
       // cursor has gone off-screen
-      mState = State.NOTHING;
-      mFocus = 0.0f;
-      if ( !mInitialSummons ) mSummoning = false;
-      mSummonTimer = 0.0f;
-      return;
+      button = false;
     }
     
     if ( mSummoning && mState == State.CAPTURING ) {
