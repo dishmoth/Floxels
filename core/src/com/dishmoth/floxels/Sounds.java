@@ -17,43 +17,43 @@ import java.util.LinkedList;
 public class Sounds {
 
   // identifiers for the different effects
-  public static final int  GRUNT_0     =  0,
-                           GRUNT_1     =  1,
-                           GRUNT_2     =  2,
-                           GRUNT_3     =  3,
-                           GRUNT_4     =  4,
-                           GRUNT_5     =  5,
-                           GRUNT_6     =  6,
-                           GRUNT_7     =  7,
-                           GRUNT_8     =  8,
-                           GRUNT_9     =  9,
-                           SQUEAK_0    = 10,
-                           SQUEAK_1    = 11,
-                           SQUEAK_2    = 12,
-                           SQUEAK_3    = 13,
-                           SQUEAK_4    = 14,
-                           SQUEAK_5    = 15,
-                           SQUEAK_6    = 16,
-                           SQUEAK_7    = 17,
-                           SQUEAK_8    = 18,
-                           SQUEAK_9    = 19,
-                           POP_0       = 20,
-                           POP_1       = 21,
-                           POP_2       = 22,
-                           POP_3       = 23,
-                           POP_4       = 24,
-                           POP_5       = 25,
-                           SUCCESS     = 26,
-                           FAIL        = 27,
-                           UNLEASH     = 28,
-                           UNLEASH_BIG = 29,
-                           REVERSAL    = 30,
-                           MAZE_MORPH  = 31,
-                           SUMMON_A    = 32,
-                           SUMMON_B    = 33,
-                           SUMMON_C    = 34,
-                           SUMMON_ON   = 35;
-  private static final int kNumSounds  = 36; 
+  public static final int  GRUNT_0      =  0,
+                           GRUNT_1      =  1,
+                           GRUNT_2      =  2,
+                           GRUNT_3      =  3,
+                           GRUNT_4      =  4,
+                           GRUNT_5      =  5,
+                           GRUNT_6      =  6,
+                           GRUNT_7      =  7,
+                           GRUNT_8      =  8,
+                           GRUNT_9      =  9,
+                           SQUEAK_0     = 10,
+                           SQUEAK_1     = 11,
+                           SQUEAK_2     = 12,
+                           SQUEAK_3     = 13,
+                           SQUEAK_4     = 14,
+                           SQUEAK_5     = 15,
+                           SQUEAK_6     = 16,
+                           SQUEAK_7     = 17,
+                           SQUEAK_8     = 18,
+                           SQUEAK_9     = 19,
+                           POP_0        = 20,
+                           POP_1        = 21,
+                           POP_2        = 22,
+                           POP_3        = 23,
+                           POP_4        = 24,
+                           POP_5        = 25,
+                           SUCCESS      = 26,
+                           FAIL         = 27,
+                           UNLEASH      = 28,
+                           UNLEASH_BIG  = 29,
+                           REVERSAL     = 30,
+                           MAZE_MORPH   = 31,
+                           SUMMON_A     = 32,
+                           SUMMON_B     = 33,
+                           SUMMON_QUICK = 34,
+                           SUMMON_ON    = 35;
+  private static final int kNumSounds   = 36; 
   
   // true if sounds have been loaded and all is operational
   private boolean mAvailable;
@@ -115,7 +115,7 @@ public class Sounds {
     loadSound(MAZE_MORPH, "maze_morph.wav");
     loadSound(SUMMON_A, "summon_A.wav");
     loadSound(SUMMON_B, "summon_B.wav");
-    loadSound(SUMMON_C, "summon_C.wav");
+    loadSound(SUMMON_QUICK, "summon_quick.wav");
     loadSound(SUMMON_ON, "summon_on.wav");
 
     for ( int k = 0 ; k < kNumDeathSounds ; k++ ) {

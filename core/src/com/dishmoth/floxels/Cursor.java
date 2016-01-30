@@ -248,7 +248,7 @@ public class Cursor extends Sprite implements SourceTerm {
                                                  : kResummonNum;
               if ( n > 0 ) {
                 mFloxels.summonFloxels(n, mFloxelType);
-                Env.sounds().play(Sounds.SUMMON_C);
+                Env.sounds().play(Sounds.SUMMON_QUICK);
                 mSummonTimer = kResummonRepeatDelay;
               }
             }
