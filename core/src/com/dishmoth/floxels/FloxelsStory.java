@@ -8,21 +8,16 @@ package com.dishmoth.floxels;
 
 import java.util.*;
 
-import com.badlogic.gdx.Application.ApplicationType;
-import com.badlogic.gdx.Gdx;
-
 // controlling class for the game
 public class FloxelsStory extends Story {
   
   // description of the majority population
-  static private final String kDescriptions[] = { "Evil", "Treacherous",
-                                                  "Brutal", "Decadent",
-                                                  "Tyrannical", "Heretical",
-                                                  "Vile", "Barbaric",
-                                                  "Sinful", "Repressive",
-                                                  "Godless", "Foul", 
-                                                  "Wicked", "Immoral",
-                                                  "Corrupt" };
+  static private final String kDescriptions[] 
+      = { "Evil", "Treacherous", "Brutal", "Decadent", "Tyrannical",
+          "Heretical", "Vile", "Barbaric", "Sinful", "Despotic",
+          "Godless", "Foul", "Wicked", "Immoral", "Corrupt", 
+          "Loathsome", "Lawless", "Pompous", "Impotent", "Despicable",
+          "Foolish", "Crooked", "Vain", "Villainous", "Zealous" };
   
   // enumeration of population types
   static private final int kMajorityType = 0,
@@ -359,7 +354,7 @@ public class FloxelsStory extends Story {
 
     spriteManager.addSprite(new TitleImage());
     spriteManager.addSprite(new TextObject((Env.touchScreen()?"Touch":"Click")
-                                           + " to Start", 
+                                           + " to Begin", 
                                            2.8f, false, 0.0f));
     
   } // prepareNewSprites()
