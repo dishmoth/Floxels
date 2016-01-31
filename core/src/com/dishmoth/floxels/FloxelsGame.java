@@ -89,7 +89,10 @@ public class FloxelsGame implements ApplicationListener {
     Env.debug("Maze size: " + nx + "x" + ny);
     Env.setTilesXY(nx, ny);
     
-    int tile = Math.min(width/Env.numTilesX(), height/Env.numTilesY());
+    float extendedBorder = (Env.touchScreen() ? 0.05f : 0.0f);
+    float wx = width/(Env.numTilesX()+extendedBorder),
+          wy = height/(Env.numTilesY()+extendedBorder);
+    int tile = (int)Math.floor(Math.min(wx, wy));
     Env.debug("Tile size: " + tile + " pixels");
     Env.setTileWidth(tile);
     
