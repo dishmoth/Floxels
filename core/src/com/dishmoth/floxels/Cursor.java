@@ -28,11 +28,19 @@ public class Cursor extends Sprite implements SourceTerm {
   private static final float kRepulseStrength    = 2.0f,
                              kRepulseStrengthMax = 30.0f;
   private static final int   kLaunchRepulseNum   = 100;
+
+  // how the strength of the cursor's repulsion weakens over time
+  private static final int   kFatigueRefine = 2;
+  private static final float kFatigueRate   = 0.5f,
+                             kFatigueRadius = 1.0f;
   
   // drag floxels into the cursor and capture them
   private static final float kPullRadius    = 0.5f,
                              kCaptureRadius = 0.1f;
 
+  // delay before the cursor can be used again after launch
+  private static final float kRelaunchDelay = 1.5f;
+  
   // slight delay before the initial summons kicks in
   private static final float kSummonDelay = 0.4f;
   
@@ -92,11 +100,14 @@ public class Cursor extends Sprite implements SourceTerm {
   // number of captured floxels
   private int mNumCaptured;
   
-  // transition state (0.0 => vanished, 1.0 => active) 
+  // transition state (0.0 => vanished, 1.0 => active, -ve => post-launch delay)
   private float mFocus;
 
   // how repulsive the launch is
   private float mLaunchRepulseStrength;
+  
+  // current cursor repulsion strength across the game area (0.0 to 1.0)
+  private float mRepulseFatigue[][];
   
   // constructor
   public Cursor(int numToSummon, int floxelType, Floxels floxels) {
@@ -120,6 +131,15 @@ public class Cursor extends Sprite implements SourceTerm {
     mFocus = 0.0f;
     
     mLaunchRepulseStrength = 0;
+    
+    final int nx = kFatigueRefine*Env.numTilesX(),
+              ny = kFatigueRefine*Env.numTilesY();
+    mRepulseFatigue = new float[ny][nx];
+    for ( int iy = 0 ; iy < ny ; iy++ ) {
+      for ( int ix = 0 ; ix < nx ; ix++ ) {
+        mRepulseFatigue[iy][ix] = 1.0f;
+      }
+    }
     
     mPaintFloxel = new Floxel();
     mPaintFloxel.mState = Floxel.State.NORMAL;
@@ -169,6 +189,8 @@ public class Cursor extends Sprite implements SourceTerm {
 
     final float dt = Env.TICK_TIME;
 
+    updateRepulseFatigue(dt);
+    
     Env.mouse().updateState();
     MouseMonitor.State state = Env.mouse().getState();
     final float x = (state.x - Env.gameOffsetX())/(float)Env.tileWidth(),
@@ -179,8 +201,11 @@ public class Cursor extends Sprite implements SourceTerm {
     
     if ( mState == State.LAUNCHING ) {
       // launching (animate the cursor)
-      mFocus = Math.max(0.0f, mFocus-dt*kFocusRate);
-      if ( mFocus == 0.0f ) mState = State.NOTHING;
+      mFocus -= dt*kFocusRate;
+      if ( mFocus <= -kRelaunchDelay ) {
+        mState = State.NOTHING;
+        mFocus = 0.0f;
+      }
       return;
     }
     
@@ -297,6 +322,57 @@ public class Cursor extends Sprite implements SourceTerm {
     
   } // Sprite.advance()
 
+  // interpolate a fatigue value for grid coords (x,y)
+  private float repulseFatigue(float x, float y) {
+
+    x = kFatigueRefine*x - 0.5f;
+    y = kFatigueRefine*y - 0.5f;
+    
+    int x0 = (int)Math.floor(x),
+        y0 = (int)Math.floor(y);
+    int x1 = x0 + 1,
+        y1 = y0 + 1;
+    float dx = x - x0,
+          dy = y - y0;
+    x0 = Math.max(x0, 0);
+    y0 = Math.max(y0, 0);
+    x1 = Math.min(x1, mRepulseFatigue[0].length-1);
+    y1 = Math.min(y1, mRepulseFatigue.length-1);
+    assert( x0 <= x1 && y0 <= y1 );
+    
+    float f0 = (1-dx)*mRepulseFatigue[y0][x0] + dx*mRepulseFatigue[y0][x1];
+    float f1 = (1-dx)*mRepulseFatigue[y1][x0] + dx*mRepulseFatigue[y1][x1];
+    float f = (1-dy)*f0 + dy*f1;
+    
+    return f;
+    
+  } // repulseFatigue()
+  
+  // weaken the repulsion strength where the cursor lingers
+  private void updateRepulseFatigue(float dt) {
+
+    final float df = dt*kFatigueRate;
+    
+    final boolean repulse = (mState == State.CAPTURING && mFocus == 1.0f); 
+    
+    for ( int iy = 0 ; iy < mRepulseFatigue.length ; iy++ ) {
+      for ( int ix = 0 ; ix < mRepulseFatigue[iy].length ; ix++ ) {
+        float f0 = 1.0f;
+        if ( repulse ) {
+          float dx = (ix+0.5f)/kFatigueRefine - mXPos,
+                dy = (iy+0.5f)/kFatigueRefine - mYPos;
+          float d2 = (dx*dx + dy*dy)/(kFatigueRadius*kFatigueRadius);
+          if ( d2 < 1.0f ) f0 = d2;
+        }
+        float f = mRepulseFatigue[iy][ix];
+        if      ( f < f0 ) f = Math.min(f0, f+df);
+        else if ( f > f0 ) f = Math.max(f0, f-df);
+        mRepulseFatigue[iy][ix] = f;
+      }
+    }
+    
+  } // updateRepulseFatigue()
+  
   // attract and repel floxels
   @Override
   public void addToSource(int floxelType, float[][] source, int refineFactor) {
@@ -308,8 +384,8 @@ public class Cursor extends Sprite implements SourceTerm {
       }
     } else {
       if ( mState == State.CAPTURING && mFocus == 1.0f  ) {
-        strength = +kRepulseStrength;
-      } else if ( mState == State.LAUNCHING ) {
+        strength = +kRepulseStrength * repulseFatigue(mXPos, mYPos);
+      } else if ( mState == State.LAUNCHING && mFocus > 0.0f ) {
         strength = mFocus*mLaunchRepulseStrength;
       }
     }
@@ -366,10 +442,12 @@ public class Cursor extends Sprite implements SourceTerm {
     
     // draw the circle
     
-    float scale = 1.0f + (kUnfocusScale-1.0f)*(1.0f-mFocus);
-    float alpha = (1.0f-mFocus)*kUnfocusAlpha + mFocus;
-    Env.painter().hoopPainter().drawHoop(batch, mXPos, mYPos, 
-                                         scale*kCursorRadius, alpha);
+    if ( mFocus > 0.0f ) {
+      float scale = 1.0f + (kUnfocusScale-1.0f)*(1.0f-mFocus);
+      float alpha = (1.0f-mFocus)*kUnfocusAlpha + mFocus;
+      Env.painter().hoopPainter().drawHoop(batch, mXPos, mYPos, 
+                                           scale*kCursorRadius, alpha);
+    }
     
   } // Sprite.draw()
 
