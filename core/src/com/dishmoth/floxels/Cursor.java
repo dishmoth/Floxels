@@ -33,6 +33,8 @@ public class Cursor extends Sprite implements SourceTerm {
   private static final int   kFatigueRefine = 2;
   private static final float kFatigueRate   = 0.5f,
                              kFatigueRadius = 1.0f;
+  private static final float kTimeWasteTime = 3.0f,
+                             kTimeWasteDrop = 0.5f;
   
   // drag floxels into the cursor and capture them
   private static final float kPullRadius    = 0.5f,
@@ -109,6 +111,9 @@ public class Cursor extends Sprite implements SourceTerm {
   // current cursor repulsion strength across the game area (0.0 to 1.0)
   private float mRepulseFatigue[][];
   
+  // how long since the floxels were all captured
+  private float mTimeWasteTimer;
+  
   // constructor
   public Cursor(int numToSummon, int floxelType, Floxels floxels) {
     
@@ -131,6 +136,7 @@ public class Cursor extends Sprite implements SourceTerm {
     mFocus = 0.0f;
     
     mLaunchRepulseStrength = 0;
+    mTimeWasteTimer = 0.0f;
     
     final int nx = kFatigueRefine*Env.numTilesX(),
               ny = kFatigueRefine*Env.numTilesY();
@@ -198,6 +204,12 @@ public class Cursor extends Sprite implements SourceTerm {
     boolean button = state.b;
 
     int numActiveFloxels = mFloxels.numFloxels(mFloxelType);
+    
+    if ( mState == State.CAPTURING && numActiveFloxels == 0 ) {
+      mTimeWasteTimer += dt;
+    } else {
+      mTimeWasteTimer = 0.0f;
+    }
     
     if ( mState == State.LAUNCHING ) {
       // launching (animate the cursor)
@@ -351,18 +363,25 @@ public class Cursor extends Sprite implements SourceTerm {
   // weaken the repulsion strength where the cursor lingers
   private void updateRepulseFatigue(float dt) {
 
+    float fbase = 1.0f;
+    if ( mTimeWasteTimer > kTimeWasteTime ) {
+      float h = Math.min(1.0f, 0.5f*(mTimeWasteTimer/kTimeWasteTime-1.0f));
+      fbase = (1.0f-h) + h*kTimeWasteDrop;
+      assert( fbase > 0.0f && fbase <= 1.0f );
+    }
+    
     final float df = dt*kFatigueRate;
     
     final boolean repulse = (mState == State.CAPTURING && mFocus == 1.0f); 
     
     for ( int iy = 0 ; iy < mRepulseFatigue.length ; iy++ ) {
       for ( int ix = 0 ; ix < mRepulseFatigue[iy].length ; ix++ ) {
-        float f0 = 1.0f;
+        float f0 = fbase;
         if ( repulse ) {
           float dx = (ix+0.5f)/kFatigueRefine - mXPos,
                 dy = (iy+0.5f)/kFatigueRefine - mYPos;
           float d2 = (dx*dx + dy*dy)/(kFatigueRadius*kFatigueRadius);
-          if ( d2 < 1.0f ) f0 = d2;
+          if ( d2 < 1.0f ) f0 *= d2;
         }
         float f = mRepulseFatigue[iy][ix];
         if      ( f < f0 ) f = Math.min(f0, f+df);
