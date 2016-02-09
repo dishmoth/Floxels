@@ -30,11 +30,12 @@ public class Cursor extends Sprite implements SourceTerm {
   private static final int   kLaunchRepulseNum   = 100;
 
   // how the strength of the cursor's repulsion weakens over time
-  private static final int   kFatigueRefine = 2;
-  private static final float kFatigueRate   = 0.5f,
-                             kFatigueRadius = 1.0f;
-  private static final float kTimeWasteTime = 3.0f,
-                             kTimeWasteDrop = 0.5f;
+  private static final int   kFatigueRefine  = 2;
+  private static final float kFatigueRate    = 0.5f,
+                             kFatigueRadius  = 1.0f;
+  private static final float kTimeWasteStart = 3.0f,
+                             kTimeWasteEnd   = 20.0f,
+                             kTimeWasteDrop  = 0.5f;
   
   // drag floxels into the cursor and capture them
   private static final float kPullRadius    = 0.5f,
@@ -363,12 +364,10 @@ public class Cursor extends Sprite implements SourceTerm {
   // weaken the repulsion strength where the cursor lingers
   private void updateRepulseFatigue(float dt) {
 
-    float fbase = 1.0f;
-    if ( mTimeWasteTimer > kTimeWasteTime ) {
-      float h = Math.min(1.0f, 0.5f*(mTimeWasteTimer/kTimeWasteTime-1.0f));
-      fbase = (1.0f-h) + h*kTimeWasteDrop;
-      assert( fbase > 0.0f && fbase <= 1.0f );
-    }
+    float h = (mTimeWasteTimer <= kTimeWasteStart) ? 0.0f
+            : (mTimeWasteTimer >= kTimeWasteEnd)   ? 1.0f
+            : (mTimeWasteTimer-kTimeWasteStart)/(kTimeWasteEnd-kTimeWasteStart);
+    float fbase = (1.0f-h) + h*kTimeWasteDrop; 
     
     final float df = dt*kFatigueRate;
     
