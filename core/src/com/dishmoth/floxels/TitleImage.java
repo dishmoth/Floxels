@@ -25,7 +25,7 @@ public class TitleImage extends Sprite {
   static private final float kTintShade = 0.85f;
 
   // how long the fade takes (seconds)
-  static private final float kFadeTime  = 0.8f,
+  static private final float kFadeTime  = 0.6f,
                              kAlphaTime = 0.3f;
   
   // size and position of the image

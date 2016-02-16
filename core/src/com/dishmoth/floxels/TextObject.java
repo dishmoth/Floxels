@@ -20,7 +20,7 @@ public class TextObject extends Sprite {
 
   // how long the fade takes (seconds)
   static private final float kAlphaInTime  = 0.6f,
-                             kFadeOutDelay = 0.5f,
+                             kFadeOutDelay = 0.3f,
                              kAlphaOutTime = 0.3f;
 
   // size of the patch border around the text (tile units)

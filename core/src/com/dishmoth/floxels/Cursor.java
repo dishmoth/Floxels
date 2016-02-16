@@ -70,6 +70,9 @@ public class Cursor extends Sprite implements SourceTerm {
   private static final float kUnfocusScale = 3.0f,
                              kUnfocusAlpha = 0.1f;
   
+  // don't play the 'bubble off' sound effect too soon after 'bubble on'
+  private static final float kBubbleSoundDelay = 0.25f;
+  
   // reference to the floxels
   private Floxels mFloxels;
   
@@ -115,6 +118,9 @@ public class Cursor extends Sprite implements SourceTerm {
   // how long since the floxels were all captured
   private float mTimeWasteTimer;
   
+  // how long since we played the 'bubble on' sound effect
+  private float mBubbleSoundTimer;
+  
   // constructor
   public Cursor(int numToSummon, int floxelType, Floxels floxels) {
     
@@ -147,6 +153,8 @@ public class Cursor extends Sprite implements SourceTerm {
         mRepulseFatigue[iy][ix] = 1.0f;
       }
     }
+    
+    mBubbleSoundTimer = 0.0f;
     
     mPaintFloxel = new Floxel();
     mPaintFloxel.mState = Floxel.State.NORMAL;
@@ -211,6 +219,7 @@ public class Cursor extends Sprite implements SourceTerm {
     } else {
       mTimeWasteTimer = 0.0f;
     }
+    mBubbleSoundTimer += dt;
     
     if ( mState == State.LAUNCHING ) {
       // launching (animate the cursor)
@@ -279,6 +288,7 @@ public class Cursor extends Sprite implements SourceTerm {
               mFloxels.summonFloxels(mNumToSummon, mFloxelType);
               Env.sounds().play(Sounds.SUMMON_A);
               Env.sounds().play(Sounds.SUMMON_B, 6);
+              newStoryEvents.add(new EventFloxelsSummoned());
             } else {
               int numLeft = mNumToSummon - mNumCaptured - numActiveFloxels;
               int n = (numLeft <= kResummonNum)  ? numLeft
@@ -295,9 +305,8 @@ public class Cursor extends Sprite implements SourceTerm {
       } else {
         mFocus = Math.min(1.0f, mFocus+dt*kFocusRate);
         if ( mFocus == 1.0f ) {
-          if ( mSummoning && mInitialSummons ) {
-            newStoryEvents.add(new EventFloxelsSummoned());
-          }
+          Env.sounds().play(Sounds.BUBBLE_ON);
+          mBubbleSoundTimer = 0.0f;
         }
       }
     } else {
@@ -316,6 +325,11 @@ public class Cursor extends Sprite implements SourceTerm {
         }
         if ( !mInitialSummons ) mSummoning = false;
         mSummonTimer = 0.0f;
+        if ( mFocus == 1.0f ) {
+          float early = Math.max(kBubbleSoundDelay - mBubbleSoundTimer, 0.0f);
+          int delay = Math.round(early/Env.TICK_TIME);
+          Env.sounds().play(Sounds.BUBBLE_OFF, delay);
+        }
       }
     }
 
