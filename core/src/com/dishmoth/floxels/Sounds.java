@@ -45,16 +45,20 @@ public class Sounds {
                            POP_5        = 25,
                            SUCCESS      = 26,
                            FAIL         = 27,
-                           UNLEASH      = 28,
-                           UNLEASH_BIG  = 29,
-                           REVERSAL     = 30,
-                           MAZE_MORPH   = 31,
-                           SUMMON_A     = 32,
-                           SUMMON_B     = 33,
-                           SUMMON_QUICK = 34,
-                           BUBBLE_ON    = 35,
-                           BUBBLE_OFF   = 36;
-  private static final int kNumSounds   = 37;
+                           UNLEASH_0    = 28,
+                           UNLEASH_1    = 29,
+                           UNLEASH_2    = 30,
+                           UNLEASH_3    = 31,
+                           UNLEASH_4    = 32,
+                           UNLEASH_BIG  = 33,
+                           REVERSAL     = 34,
+                           MAZE_MORPH   = 35,
+                           SUMMON_A     = 36,
+                           SUMMON_B     = 37,
+                           SUMMON_QUICK = 38,
+                           BUBBLE_ON    = 39,
+                           BUBBLE_OFF   = 40;
+  private static final int kNumSounds   = 41;
   
   // true if sounds have been loaded and all is operational
   private boolean mAvailable;
@@ -82,6 +86,7 @@ public class Sounds {
   private int              mCaptureNextIndex = 0,
                            mCaptureCount     = 0,
                            mCaptureDelay     = 0;
+  private static final int kNumUnleashSounds = 5;
     
   // constructor
   public Sounds() {
@@ -110,7 +115,6 @@ public class Sounds {
     
     loadSound(SUCCESS, "success.ogg");
     loadSound(FAIL, "fail.ogg");
-    loadSound(UNLEASH, "unleash.ogg");
     loadSound(UNLEASH_BIG, "unleash_big.ogg");
     loadSound(REVERSAL, "reversal.ogg");
     loadSound(MAZE_MORPH, "maze_morph.wav");
@@ -127,6 +131,10 @@ public class Sounds {
 
     for ( int k = 0 ; k < kNumCaptureSounds ; k++ ) {
       loadSound(POP_0+k, "pop"+k+".ogg");
+    }
+
+    for ( int k = 0 ; k < kNumUnleashSounds ; k++ ) {
+      loadSound(UNLEASH_0+k, "unleash"+k+".wav");
     }
 
     checkSounds();
@@ -323,5 +331,20 @@ public class Sounds {
     mCaptureCount += count;
     
   } // playCaptureSound()
+  
+  // play sounds for unleashed floxels
+  public void playUnleashSound(int count) {
+    
+    if ( !mAvailable || mMuted ) return;
+
+    assert( count > 0 );
+    Env.debug("count="+count);
+    if      ( count <=  10 ) play(UNLEASH_0);
+    else if ( count <=  50 ) play(UNLEASH_1);
+    else if ( count <= 100 ) play(UNLEASH_2);
+    else if ( count <= 250 ) play(UNLEASH_3);
+    else                     play(UNLEASH_4);
+    
+  } // playUnleashSound()
   
 } // class Sounds

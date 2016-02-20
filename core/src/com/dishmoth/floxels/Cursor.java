@@ -319,6 +319,7 @@ public class Cursor extends Sprite implements SourceTerm {
                                    + h*kRepulseStrengthMax; 
           mFloxels.releaseFloxels(mFloxelType, mNumCaptured, 
                                   mXPos, mYPos, floxelRadius());
+          Env.sounds().playUnleashSound(mNumCaptured);
           mNumCaptured = 0;
         } else {
           mLaunchRepulseStrength = 0.0f;
