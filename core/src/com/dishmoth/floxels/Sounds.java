@@ -117,12 +117,12 @@ public class Sounds {
     loadSound(FAIL, "fail.ogg");
     loadSound(UNLEASH_BIG, "unleash_big.ogg");
     loadSound(REVERSAL, "reversal.ogg");
-    loadSound(MAZE_MORPH, "maze_morph.wav");
-    loadSound(SUMMON_A, "summon_A.wav");
-    loadSound(SUMMON_B, "summon_B.wav");
-    loadSound(SUMMON_QUICK, "summon_quick.wav");
-    loadSound(BUBBLE_ON, "bubble_on.wav");
-    loadSound(BUBBLE_OFF, "bubble_off.wav");
+    loadSound(MAZE_MORPH, "maze_morph.ogg");
+    loadSound(SUMMON_A, "summon_A.ogg");
+    loadSound(SUMMON_B, "summon_B.ogg");
+    loadSound(SUMMON_QUICK, "summon_quick.ogg");
+    loadSound(BUBBLE_ON, "bubble_on.ogg");
+    loadSound(BUBBLE_OFF, "bubble_off.ogg");
 
     for ( int k = 0 ; k < kNumDeathSounds ; k++ ) {
       loadSound(GRUNT_0+k, "grunt"+k+".ogg");
@@ -134,7 +134,7 @@ public class Sounds {
     }
 
     for ( int k = 0 ; k < kNumUnleashSounds ; k++ ) {
-      loadSound(UNLEASH_0+k, "unleash"+k+".wav");
+      loadSound(UNLEASH_0+k, "unleash"+k+".ogg");
     }
 
     checkSounds();
@@ -338,7 +338,6 @@ public class Sounds {
     if ( !mAvailable || mMuted ) return;
 
     assert( count > 0 );
-    Env.debug("count="+count);
     if      ( count <=  10 ) play(UNLEASH_0);
     else if ( count <=  50 ) play(UNLEASH_1);
     else if ( count <= 100 ) play(UNLEASH_2);
