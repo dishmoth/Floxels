@@ -12,7 +12,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 // collect timing statistics as the game is running
 class TimingStats {
 
-  // show frame rate on screen
+  // show frame rate on screen (for development)
   private static final boolean kOnscreenReport = false;
   
   // time between reports
@@ -20,7 +20,7 @@ class TimingStats {
                              kFpsReportSeconds = 1.0f;
 
   // display the frame rate if it is consistently below this value
-  private static final int kFpsDisplayCutoff = 99;
+  private static final int kFpsDisplayCutoff = 95;
   
   // assorted measurements
   private int   mNumUpdates;
@@ -101,7 +101,7 @@ class TimingStats {
       mFpsValueOld1 = mFpsValue;
       
       mFpsValue = Math.round( 100 * (mFpsUpdates/mFpsSeconds) 
-                              / (2*Env.TICKS_PER_SEC) );
+                              / Env.TICKS_PER_SEC );
 
       if ( mFpsValue     > 0 && mFpsValue     <= kFpsDisplayCutoff &&
            mFpsValueOld1 > 0 && mFpsValueOld1 <= kFpsDisplayCutoff &&
