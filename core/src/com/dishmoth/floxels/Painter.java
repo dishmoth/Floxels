@@ -18,12 +18,13 @@ import com.badlogic.gdx.math.MathUtils;
 public class Painter {
 
   // objects for painting different types of things
-  private FloxelPainter mFloxelPainter;
-  private MazePainter   mMazePainter;
-  private HoopPainter   mHoopPainter;
-  private TitlePainter  mTitlePainter;
-  private PatchPainter  mPatchPainter;
-  private Fonts         mFonts;
+  private FloxelPainter     mFloxelPainter;
+  private MazePainter       mMazePainter;
+  private HoopPainter       mHoopPainter;
+  private TitlePainter      mTitlePainter;
+  private PatchPainter      mPatchPainter;
+  private BackgroundPainter mBackgroundPainter;
+  private Fonts             mFonts;
   
   // raw image data
   private Pixmap mPixmap;
@@ -105,18 +106,20 @@ public class Painter {
     mPatchPainter.setTexture(mTexture, xPatch, yPatch);
 
     mTitlePainter = new TitlePainter();
+    mBackgroundPainter = new BackgroundPainter();
     
     mFonts = new Fonts(tileWidth);
     
   } // prepare()
 
   // access to the specific painter objects
-  public FloxelPainter floxelPainter() { return mFloxelPainter; }
-  public MazePainter   mazePainter()   { return mMazePainter; }
-  public HoopPainter   hoopPainter()   { return mHoopPainter; }
-  public TitlePainter  titlePainter()  { return mTitlePainter; }
-  public PatchPainter  patchPainter()  { return mPatchPainter; }
-  public Fonts         fonts()         { return mFonts; }
+  public FloxelPainter     floxelPainter()      { return mFloxelPainter; }
+  public MazePainter       mazePainter()        { return mMazePainter; }
+  public HoopPainter       hoopPainter()        { return mHoopPainter; }
+  public TitlePainter      titlePainter()       { return mTitlePainter; }
+  public PatchPainter      patchPainter()       { return mPatchPainter; }
+  public BackgroundPainter backgroundPainter()  { return mBackgroundPainter; }
+  public Fonts             fonts()              { return mFonts; }
   
   // discard resources
   public void dispose() {
