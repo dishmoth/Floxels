@@ -8,10 +8,7 @@ package com.dishmoth.floxels;
 
 import java.util.LinkedList;
 
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
-import com.badlogic.gdx.graphics.Texture.TextureWrap;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 // static background image 
@@ -20,8 +17,8 @@ public class Background extends Sprite {
   // how this sprite is drawn relative to others
   private static final int kScreenLayer = 0;
   
-  // how much the noise is stretched to cover the game screen
-  private static final float kNoiseRepeats = 2.3f;
+  // how much the noise is stretched to cover one tile
+  private static final float kNoiseRepeats = 0.23f;
   
   // constructor
   public Background() {
@@ -46,7 +43,7 @@ public class Background extends Sprite {
                Env.gameOffsetX(), Env.gameOffsetY(),
                Env.gameWidth(), Env.gameHeight(),
                0.0f, 0.0f,
-               kNoiseRepeats, kNoiseRepeats);
+               Env.numTilesX()*kNoiseRepeats, Env.numTilesY()*kNoiseRepeats);
 
   } // Sprite.draw()
   
