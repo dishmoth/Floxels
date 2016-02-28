@@ -85,6 +85,9 @@ public class HoopPainter {
     
   } // setTexture()
   
+  // replace the texture (following game pause/resume)
+  public void resetTexture(Texture texture) { mTexture = texture; }
+  
   // draw a circle
   // (note: the SpriteBatch's shader, etc. is reused, which is a little dodgy)
   void drawHoop(SpriteBatch batch, float x, float y, float r, float alpha) {

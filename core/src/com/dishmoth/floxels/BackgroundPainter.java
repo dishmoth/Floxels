@@ -26,9 +26,6 @@ public class BackgroundPainter {
   private static final float kLightCutoff     = 5.0f,
                              kDarkCutoff      = -2.0f;
   
-  // how much the noise is stretched to cover the game screen
-  private static final float kNoiseRepeats = 2.3f;
-  
   // textured background tile
   private Pixmap  mNoiseImage;
   private Texture mNoiseTexture;
@@ -105,5 +102,16 @@ public class BackgroundPainter {
   
   // access to the texture
   public Texture texture() { return mNoiseTexture; } 
+  
+  // rebuild unmanaged texture when the game is resumed
+  public void resetTexture() {
+    
+    if ( mNoiseTexture != null ) {
+      mNoiseTexture.dispose();
+      mNoiseTexture = null;
+    }
+    makeTexture();
+    
+  } // resetTexture()
   
 } // class BackgroundPainter

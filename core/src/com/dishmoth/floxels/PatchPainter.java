@@ -30,6 +30,10 @@ public class PatchPainter {
   // the final patch object
   private NinePatch mPatch;
   
+  // reference texture position (if we need to reset the texture) 
+  private int mTexBaseX,
+              mTexBaseY;
+  
   // constructor
   public PatchPainter(int tileWidth) {
     
@@ -74,8 +78,18 @@ public class PatchPainter {
     mPatch.setRightWidth(mBorderSize);
     mPatch.setTopHeight(mBorderSize);
     mPatch.setBottomHeight(mBorderSize);
+
+    mTexBaseX = x;
+    mTexBaseY = y;
     
   } // setTexture()
+  
+  // replace the texture (following game pause/resume)
+  public void resetTexture(Texture texture) {
+    
+    setTexture(texture, mTexBaseX, mTexBaseY);
+    
+  } // resetTexture()
   
   // access to the patch object
   public NinePatch patch() { return mPatch; }

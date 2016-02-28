@@ -121,8 +121,23 @@ public class Painter {
   public BackgroundPainter backgroundPainter()  { return mBackgroundPainter; }
   public Fonts             fonts()              { return mFonts; }
   
-  // discard resources
-  public void dispose() {
-  } // dispose()
+  // rebuild unmanaged textures when the game is resumed
+  public void resetTextures() {
+    
+    if ( mTexture != null ) mTexture.dispose();
+
+    mTexture = new Texture(mPixmap, false);
+    mTexture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+    
+    mTexture.draw(mPixmap, 0, 0);
+    
+    mFloxelPainter.resetTexture(mTexture);
+    mMazePainter.resetTexture(mTexture);
+    mHoopPainter.resetTexture(mTexture);
+    mPatchPainter.resetTexture(mTexture);
+    
+    mBackgroundPainter.resetTexture();
+    
+  } // resetTextures()
   
 } // class Painter

@@ -24,6 +24,9 @@ public class FloxelsGame implements ApplicationListener {
   // the main game controller
   private GameManager mGameManager;
 
+  // the game is interrupted (Android) or minimized (Desktop)
+  private boolean mPaused;
+  
   // seconds since the last update
   private double mTimeSince;
 
@@ -36,7 +39,6 @@ public class FloxelsGame implements ApplicationListener {
 	  Env.debug("create()");
 	  
     Env.initialize();
-    //Env.spriteStore().prepare();
     Env.sounds().initialize();
 
     int width = Gdx.graphics.getWidth();
@@ -53,6 +55,8 @@ public class FloxelsGame implements ApplicationListener {
     
     mGameManager = new GameManager(new FloxelsStory());
 
+    mPaused = false;
+    
     mTimeSince = 0.0f;
 
     mTimingStats = new TimingStats();
@@ -111,6 +115,7 @@ public class FloxelsGame implements ApplicationListener {
   public void pause () {
     
     Env.debug("pause()");
+    mPaused = true;
     
   } // ApplicationListener.pause()
 
@@ -119,6 +124,8 @@ public class FloxelsGame implements ApplicationListener {
   public void resume () {
     
     Env.debug("resume()");
+    mPaused = false;
+    Env.painter().resetTextures();
     
   } // ApplicationListener.resume()
 
@@ -126,12 +133,13 @@ public class FloxelsGame implements ApplicationListener {
   public void dispose () {
     
     Env.debug("dispose()");
-    //Env.spriteStore().dispose();
     
   } // ApplicationListener.dispose()
 
   // Called when the application should render itself.
   public void render() {
+
+    if ( mPaused ) return;
     
     final float deltaTime = Gdx.graphics.getRawDeltaTime();
     mTimingStats.update(deltaTime);

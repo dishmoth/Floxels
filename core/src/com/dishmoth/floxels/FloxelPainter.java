@@ -236,14 +236,6 @@ public class FloxelPainter {
   public Pixmap floxelPixmap() { return mFloxelPixmap; }
   public Pixmap splatPixmap()  { return mSplatPixmap; }
   
-  // release resources
-  public void dispose() {
-    
-    mFloxelPixmap.dispose();
-    mSplatPixmap.dispose();
-    
-  } // dispose()
-  
   // pixel width of floxel
   public int targetSize() { return mFacePixSize; }
   
@@ -274,6 +266,9 @@ public class FloxelPainter {
     mTextureSplatShiftU = (mSplatTexSize+2)/(float)mTexture.getWidth();
     
   } // setTexure()
+
+  // replace the texture (following game pause/resume)
+  public void resetTexture(Texture texture) { mTexture = texture; }
   
   // display a floxel
   void draw(SpriteBatch batch, Floxel floxel, int colour) {

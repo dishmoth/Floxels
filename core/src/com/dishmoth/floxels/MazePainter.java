@@ -50,6 +50,10 @@ public class MazePainter {
   // reference to the texture data
   private Texture mTexture;
   
+  // reference texture position (if we need to reset the texture) 
+  private int mTexBaseX,
+              mTexBaseY;
+  
   // images for each type of join between wall sections
   // ordered according to: index = (wall goes right) + 2*(wall goes up) 
   //                             + 4*(wall goes left) + 8*(wall goes down) - 1
@@ -205,36 +209,47 @@ public class MazePainter {
     assert( mTexture == null );
     mTexture = texture;
     
+    mTexBaseX = x0;
+    mTexBaseY = y0;
+    
     mCorners = new TextureRegion[kNumCorners];
-    mCorners[0]  = texRegion(mTexture, x0, y0, 0, false, false); // R
-    mCorners[1]  = texRegion(mTexture, x0, y0, 1, false, false); // U
-    mCorners[2]  = texRegion(mTexture, x0, y0, 4, false, false); // UR
-    mCorners[3]  = texRegion(mTexture, x0, y0, 0, true,  false); // L
-    mCorners[4]  = texRegion(mTexture, x0, y0, 2, false, false); // LR
-    mCorners[5]  = texRegion(mTexture, x0, y0, 4, true,  false); // LU
-    mCorners[6]  = texRegion(mTexture, x0, y0, 6, false, false); // LUR
-    mCorners[7]  = texRegion(mTexture, x0, y0, 1, false, true);  // D
-    mCorners[8]  = texRegion(mTexture, x0, y0, 4, false, true);  // DR
-    mCorners[9]  = texRegion(mTexture, x0, y0, 3, false, false); // DU
-    mCorners[10] = texRegion(mTexture, x0, y0, 5, false, false); // DUR
-    mCorners[11] = texRegion(mTexture, x0, y0, 4, true,  true);  // DL
-    mCorners[12] = texRegion(mTexture, x0, y0, 6, false, true);  // DLR
-    mCorners[13] = texRegion(mTexture, x0, y0, 5, true,  false); // DLU
-    mCorners[14] = texRegion(mTexture, x0, y0, 7, false, false); // DLUR
+    mCorners[0]  = texRegion(mTexture, 0, false, false); // R
+    mCorners[1]  = texRegion(mTexture, 1, false, false); // U
+    mCorners[2]  = texRegion(mTexture, 4, false, false); // UR
+    mCorners[3]  = texRegion(mTexture, 0, true,  false); // L
+    mCorners[4]  = texRegion(mTexture, 2, false, false); // LR
+    mCorners[5]  = texRegion(mTexture, 4, true,  false); // LU
+    mCorners[6]  = texRegion(mTexture, 6, false, false); // LUR
+    mCorners[7]  = texRegion(mTexture, 1, false, true);  // D
+    mCorners[8]  = texRegion(mTexture, 4, false, true);  // DR
+    mCorners[9]  = texRegion(mTexture, 3, false, false); // DU
+    mCorners[10] = texRegion(mTexture, 5, false, false); // DUR
+    mCorners[11] = texRegion(mTexture, 4, true,  true);  // DL
+    mCorners[12] = texRegion(mTexture, 6, false, true);  // DLR
+    mCorners[13] = texRegion(mTexture, 5, true,  false); // DLU
+    mCorners[14] = texRegion(mTexture, 7, false, false); // DLUR
 
     mWallHoriz = mCorners[4];
     mWallVert  = mCorners[9];
     
   } // setTexture()
   
+  // replace the texture (following game pause/resume)
+  public void resetTexture(Texture texture) { 
+
+    mTexture = null;
+    setTexture(texture, mTexBaseX, mTexBaseY);
+    
+  } // resetTexture()
+  
   // extract part of the texture for one corner
-  private TextureRegion texRegion(Texture texture, int x0, int y0, 
-                                  int index, boolean flipX, boolean flipY) {
+  private TextureRegion texRegion(Texture texture, int index, 
+                                  boolean flipX, boolean flipY) {
     
     assert( index >= 0 && index < 8 );
     
-    int x  = (x0+1) + index*mPixmapSize,
-        y  = (y0+1),
+    int x  = (mTexBaseX+1) + index*mPixmapSize,
+        y  = (mTexBaseY+1),
         dx = mPixmapSize - 2,
         dy = mPixmapSize - 2;
     
