@@ -78,6 +78,9 @@ public class FloxelsStory extends Story {
   // true if the minority is suddenly on the offensive
   private boolean mReversed;
   
+  // check whether the 'back' button has been pressed
+  private boolean mQuitTriggered;
+  
   // constructor
   public FloxelsStory() {
 
@@ -89,6 +92,8 @@ public class FloxelsStory extends Story {
   public Story advance(LinkedList<StoryEvent> storyEvents,
                        SpriteManager          spriteManager) {
 
+    Story newStory = null;
+    
     // process the story event list
     for ( Iterator<StoryEvent> it = storyEvents.iterator() ; it.hasNext() ; ) {
       StoryEvent event = it.next();
@@ -167,14 +172,30 @@ public class FloxelsStory extends Story {
       assert( total == mMajorityPopulation + kMinorityPopulation );
     }
 
+    // update the score
     if ( mCursor != null ) {
       int num = mCursor.numCaptured();
       if ( !mCursor.summoning() ) num += mFloxels.numFloxels(kMinorityType);
       mScore.set(num);
     }
+
+    // check the 'back' button
+    if ( Env.quitButton() ) {
+      if ( !mQuitTriggered ) {
+        if ( spriteManager.findSpriteOfType(TitleImage.class) != null ) {
+          Env.exit();
+        } else {
+          newStory = new QuitStory(this);
+          storyEvents.add(new Story.EventStoryBegins());
+        }
+      }
+      mQuitTriggered = true;
+    } else {
+      mQuitTriggered = false;
+    }
     
-    // no change of story
-    return null;
+    // change of story (usually null)
+    return newStory;
 
   } // advance()
 

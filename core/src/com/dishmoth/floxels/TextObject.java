@@ -94,6 +94,25 @@ public class TextObject extends Sprite {
     mYMax = mText.yMax() + border;
     
   } // constructor
+
+  // access to position (tile units)
+  public float xMin() { return mXMin/Env.tileWidth(); }
+  public float xMax() { return mXMax/Env.tileWidth(); }
+  public float yMin() { return mYMin/Env.tileWidth(); }
+  public float yMax() { return mYMax/Env.tileWidth(); }
+  
+  // move the text (tile units)
+  public void translate(float dx, float dy) {
+    
+    dx *= Env.tileWidth();
+    dy *= Env.tileWidth();
+    mText.translate(dx, dy);
+    mXMin += dx;
+    mYMin += dy;
+    mXMax += dx;
+    mYMax += dy;
+    
+  } // translate()
   
   // make the image go away
   public void fade() {
@@ -103,6 +122,9 @@ public class TextObject extends Sprite {
     mFadeTimer = kFadeOutDelay + kAlphaOutTime;
     
   } // fade()
+  
+  // whether the image is currently fading out
+  public boolean fading() { return (!mFadeIn && mFadeTimer > 0.0f); }
   
   // fade the text in or out
   @Override

@@ -263,9 +263,9 @@ public class Sounds {
     if ( !mAvailable || mMuted ) return;
     
     assert( id >= 0 && id < kNumSounds );
-    assert( isLooped(id) );
     
-    if ( mLoops[id].isPlaying() ) mLoops[id].stop();
+    if      ( mSounds[id] != null ) mSounds[id].stop();
+    else if ( mLoops[id]  != null ) mLoops[id].stop();
     
   } // stop()
 
@@ -273,7 +273,7 @@ public class Sounds {
   public void stopAll() {
 
     for ( int id = 0 ; id < kNumSounds ; id++ ) {
-      if ( isLooped(id) ) stop(id);
+      stop(id);
     }
     
   } // stopAll()

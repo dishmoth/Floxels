@@ -9,6 +9,7 @@ package com.dishmoth.floxels;
 import java.util.*;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Application.ApplicationType;
 
 public class Env {
@@ -101,6 +102,12 @@ public class Env {
     return ( Gdx.app.getType() == ApplicationType.Android 
           || Gdx.app.getType() == ApplicationType.iOS );
   } // touchScreen()
+
+  // check for 'back' button on android
+  static public boolean quitButton() {
+    return ( Gdx.input.isKeyPressed(Input.Keys.BACK) ||
+             Gdx.input.isKeyPressed(Input.Keys.ESCAPE) );
+  } // quitButton()
   
   // return reference to mouse monitor
   static public MouseMonitor mouse() { return kMouseMonitor; }
@@ -111,16 +118,8 @@ public class Env {
   // collection of classes for drawing stuff
   static public Painter painter() { return kPainter; }
   
-  // end the game, close the window (could be done better?)
-  static public void exitGame() {
-    
-    //if ( kOwner != null && kOwner instanceof MainWindow ) {
-    //  ((MainWindow)kOwner).exit();
-    //} else {
-      System.exit(0);
-    //}
-    
-  } // exitGame()
+  // end the game, close the window/shut the app
+  static public void exit() { Gdx.app.exit(); }
   
   // assorted functions for returning random numbers
   static public float randomFloat() { // in range [0,1]

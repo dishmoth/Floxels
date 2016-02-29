@@ -79,8 +79,8 @@ public class Cursor extends Sprite implements SourceTerm {
   // which population the cursor acts on
   private final int mFloxelType;
   
-  // local helper floxel to simplify painting
-  private Floxel mPaintFloxel = null;
+  // local helper floxels to simplify painting
+  private Floxel mPaintFloxels[] = null;
 
   // give special treatment when displaying the last captured floxel  
   private float mFinalFaceTimer;
@@ -156,9 +156,12 @@ public class Cursor extends Sprite implements SourceTerm {
     
     mBubbleSoundTimer = 0.0f;
     
-    mPaintFloxel = new Floxel();
-    mPaintFloxel.mState = Floxel.State.NORMAL;
-    mPaintFloxel.mType = (byte)mFloxelType;
+    mPaintFloxels = new Floxel[kFloxelCrowdNumDrawn];
+    for ( int k = 0 ; k < mPaintFloxels.length ; k++ ) {
+      mPaintFloxels[k] = new Floxel();
+      mPaintFloxels[k].mState = Floxel.State.NORMAL;
+      mPaintFloxels[k].mType = (byte)mFloxelType;
+    }
 
     mFinalFace = (byte)Env.randomInt( Floxel.NUM_EXPRESSIONS );
     mFinalShade = (byte)Env.randomInt( Floxel.NUM_SHADES );
@@ -334,8 +337,25 @@ public class Cursor extends Sprite implements SourceTerm {
       }
     }
 
-    if ( mState == State.CAPTURING ) {
-      // animate the last-drawn (most visible) floxel face
+    // animate the captured floxel faces
+    assert( mState == State.CAPTURING || mNumCaptured == 0 );
+    if ( mState == State.CAPTURING && mNumCaptured > 0 ) {
+      
+      final float crowdRadius = floxelRadius();
+      final int crowdNum = Math.min( mNumCaptured, kFloxelCrowdNumDrawn );
+      for ( int k = 0 ; k < crowdNum ; k++ ) {
+        float dx, dy;
+        do {
+          dx = Env.randomFloat(-1.0f, +1.0f);
+          dy = Env.randomFloat(-1.0f, +1.0f);
+        } while ( dx*dx + dy*dy > 1.0 );
+
+        mPaintFloxels[k].mX = mXPos + crowdRadius*dx; 
+        mPaintFloxels[k].mY = mYPos + crowdRadius*dy;
+        mPaintFloxels[k].mShade = (byte)Env.randomInt( Floxel.NUM_SHADES );
+        mPaintFloxels[k].mFace = (byte)Env.randomInt( Floxel.NUM_EXPRESSIONS );
+      }
+      
       mFinalFaceTimer -= dt;
       if ( mFinalFaceTimer <= 0.0f ) {
         mFinalFaceTimer = Env.randomFloat(kFinalFaceMinTime, 
@@ -346,6 +366,10 @@ public class Cursor extends Sprite implements SourceTerm {
       else if ( mFinalShade == Floxel.NUM_SHADES-1 ) mFinalShade -= 1;
       else if ( Env.randomBoolean() )                mFinalShade += 1;
       else                                           mFinalShade -= 1;
+      
+      Floxel finalFace = mPaintFloxels[crowdNum-1];
+      finalFace.mShade = mFinalShade;
+      finalFace.mFace = mFinalFace;
     }
     
   } // Sprite.advance()
@@ -445,32 +469,14 @@ public class Cursor extends Sprite implements SourceTerm {
     
     if ( mState == State.NOTHING ) return;
 
+    // draw some floxels
+    
     FloxelPainter painter = Env.painter().floxelPainter();
     int colour = mFloxels.floxelColour(mFloxelType);
     
-    // draw some floxels
-    
-    final float crowdRadius = floxelRadius();
     final int crowdNum = Math.min( mNumCaptured, kFloxelCrowdNumDrawn );
     for ( int k = 0 ; k < crowdNum ; k++ ) {
-      float dx, dy;
-      do {
-        dx = Env.randomFloat(-1.0f, +1.0f);
-        dy = Env.randomFloat(-1.0f, +1.0f);
-      } while ( dx*dx + dy*dy > 1.0 );
-
-      mPaintFloxel.mX = mXPos + crowdRadius*dx; 
-      mPaintFloxel.mY = mYPos + crowdRadius*dy;
-      
-      if ( k == crowdNum-1 ) {
-        mPaintFloxel.mShade = mFinalShade;
-        mPaintFloxel.mFace = mFinalFace;
-      } else {
-        mPaintFloxel.mShade = (byte)Env.randomInt( Floxel.NUM_SHADES );
-        mPaintFloxel.mFace = (byte)Env.randomInt( Floxel.NUM_EXPRESSIONS );
-      }
-      
-      painter.draw(batch, mPaintFloxel, colour);
+      painter.draw(batch, mPaintFloxels[k], colour);
     }
     
     // draw the circle

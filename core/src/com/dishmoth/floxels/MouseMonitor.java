@@ -19,15 +19,20 @@ public class MouseMonitor {
   } // class MouseMonitor.State
   
   // current state of the pointer (position is in pixels)
-  int     mPointerX,
-          mPointerY;
-  boolean mButton;
+  private int     mPointerX,
+                  mPointerY;
+  private boolean mButton;
+  
+  // number of updates until the mouse is enabled again
+  private int mDisableTimer;
   
   // constructor
   public MouseMonitor() {
     
     mPointerX = mPointerY = -1;
     mButton = false;
+    
+    mDisableTimer = 0;
     
   } // constructor
   
@@ -41,6 +46,13 @@ public class MouseMonitor {
   // update current state of the pointer and the main button
   public void updateState() {
 
+    if ( mDisableTimer > 0 ) {
+      mDisableTimer -= 1;
+      mPointerX = mPointerY = -1;
+      mButton = false;
+      return;
+    }
+    
     mButton = false;
     
     final int numPointers = 2;
@@ -55,5 +67,15 @@ public class MouseMonitor {
     }
     
   } // updateState()
+  
+  // disable the mouse for a number of frames
+  public void disableMouse(int disableTime) {
+ 
+    assert( disableTime > 0 );
+    mDisableTimer = Math.max(mDisableTimer, disableTime);
+    mPointerX = mPointerY = -1;
+    mButton = false;
+    
+  } // disableMouse()
   
 } // class MouseMonitor

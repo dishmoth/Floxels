@@ -16,6 +16,9 @@ abstract public class Story {
   // story event: the game manager has just been constructed
   public static class EventGameBegins extends StoryEvent {}
 
+  // story event: a new story takes over
+  public static class EventStoryBegins extends StoryEvent {}
+
   // game moves on by one frame
   // a list of StoryEvent objects is processed, possibly added to
   // new sprites may be added to the sprite manager

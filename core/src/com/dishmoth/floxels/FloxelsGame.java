@@ -41,6 +41,8 @@ public class FloxelsGame implements ApplicationListener {
     Env.initialize();
     Env.sounds().initialize();
 
+    Gdx.input.setCatchBackKey(true);
+
     int width = Gdx.graphics.getWidth();
     int height = Gdx.graphics.getHeight();
 
@@ -112,16 +114,17 @@ public class FloxelsGame implements ApplicationListener {
 
   // Called when the application is paused, usually when it's not active or 
   // visible on screen.  An application is also paused before it is destroyed.
-  public void pause () {
+  public void pause() {
     
     Env.debug("pause()");
     mPaused = true;
+    Env.sounds().stopAll();
     
   } // ApplicationListener.pause()
 
   // Called when the application is resumed from a paused state, 
   // usually when it regains focus.
-  public void resume () {
+  public void resume() {
     
     Env.debug("resume()");
     mPaused = false;
