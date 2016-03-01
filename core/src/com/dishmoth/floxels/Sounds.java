@@ -57,8 +57,10 @@ public class Sounds {
                            SUMMON_B     = 37,
                            SUMMON_QUICK = 38,
                            BUBBLE_ON    = 39,
-                           BUBBLE_OFF   = 40;
-  private static final int kNumSounds   = 41;
+                           BUBBLE_OFF   = 40,
+                           CLICK        = 41,
+                           END_BLAST    = 42;
+  private static final int kNumSounds   = 43;
   
   // true if sounds have been loaded and all is operational
   private boolean mAvailable;
@@ -123,6 +125,8 @@ public class Sounds {
     loadSound(SUMMON_QUICK, "summon_quick.ogg");
     loadSound(BUBBLE_ON, "bubble_on.ogg");
     loadSound(BUBBLE_OFF, "bubble_off.ogg");
+    loadSound(CLICK, "click.ogg");
+    loadSound(END_BLAST, "end_blast.ogg");
 
     for ( int k = 0 ; k < kNumDeathSounds ; k++ ) {
       loadSound(GRUNT_0+k, "grunt"+k+".ogg");

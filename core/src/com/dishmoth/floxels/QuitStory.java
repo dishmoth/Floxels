@@ -57,6 +57,7 @@ public class QuitStory extends Story {
         addText(spriteManager);
         mQuitTriggered = mMouseTriggered = true;
         Env.sounds().stopAll();
+        Env.sounds().play(Sounds.CLICK);
         it.remove();
       } // Story.EventStoryBegins
 
@@ -66,12 +67,13 @@ public class QuitStory extends Story {
       }
       
     } // for each story event
+
+    boolean quitGame   = false,
+            resumeGame = false;
     
     // check the 'back' button
     if ( Env.quitButton() ) {
-      if ( !mQuitTriggered ) {
-        mFinished = true;
-      }
+      if ( !mQuitTriggered ) resumeGame = true;
       mQuitTriggered = true;
     } else {
       mQuitTriggered = false;
@@ -80,16 +82,16 @@ public class QuitStory extends Story {
     // check the mouse
     Env.mouse().updateState();
     MouseMonitor.State state = Env.mouse().getState();
+    final float x = (state.x - Env.gameOffsetX())/(float)Env.tileWidth(),
+                y = (state.y - Env.gameOffsetY())/(float)Env.tileWidth();
     if ( state.b ) {
       if ( !mMouseTriggered ) {
-        final float x = (state.x - Env.gameOffsetX())/(float)Env.tileWidth(),
-                    y = (state.y - Env.gameOffsetY())/(float)Env.tileWidth();
         if ( x >= mText[1].xMin() && x <= mText[1].xMax() &&
              y >= mText[1].yMin() && y <= mText[1].yMax() ) {
-          Env.exit();
+          quitGame = true;
         } else if ( x >= 0 && x < Env.numTilesX() && 
                     y >= 0 && y < Env.numTilesY() ) {
-          mFinished = true;
+          resumeGame = true;
         }
       }
       mMouseTriggered = true;
@@ -98,10 +100,21 @@ public class QuitStory extends Story {
     }
 
     // tidy up, we're leaving soon
-    if ( mFinished ) {
-      Env.mouse().disableMouse( Env.TICKS_PER_SEC/2 );
+    if ( quitGame ) {
       unfreezeSprites();
-      removeText(spriteManager);
+      removeText(spriteManager, true);
+      Floxels floxels = (Floxels)spriteManager.findSpriteOfType(Floxels.class);
+      spriteManager.addSprite(new EndBlast(x, y, floxels));
+      floxels.setPlayDead(true);
+      Env.sounds().play(Sounds.END_BLAST);
+      Env.mouse().disableMouse( 5*Env.TICKS_PER_SEC );
+      mFinished = true;
+    } else if ( resumeGame ) {
+      unfreezeSprites();
+      removeText(spriteManager, false);
+      Env.sounds().play(Sounds.CLICK);
+      Env.mouse().disableMouse( Env.TICKS_PER_SEC/2 );
+      mFinished = true;
     }
     
     // no change of story
@@ -129,7 +142,7 @@ public class QuitStory extends Story {
   } // addInstructions()
 
   // remove the text objects (also clean up any fading text)
-  private void removeText(SpriteManager spriteManager) {
+  private void removeText(SpriteManager spriteManager, boolean quitting) {
 
     for ( TextObject tx : mText ) spriteManager.removeSprite(tx);
 
@@ -137,7 +150,14 @@ public class QuitStory extends Story {
     for ( Sprite sp : spriteManager.list() ) {
       if ( sp instanceof TextObject ) {
         TextObject tx = (TextObject)sp;
-        if ( tx.fading() ) spritesToDelete.add(tx);
+        if ( tx.fading() || quitting ) spritesToDelete.add(tx);
+      }
+      if ( sp instanceof Maze && quitting ) {
+        sp.mAdvanceDisabled = true;
+      }
+      if ( sp instanceof Spawner && quitting ) {
+        sp.mAdvanceDisabled = true;
+        sp.mDrawDisabled = true;
       }
     }
     for ( Sprite sp : spritesToDelete ) spriteManager.removeSprite(sp);

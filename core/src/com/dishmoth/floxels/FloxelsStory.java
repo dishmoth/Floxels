@@ -11,6 +11,10 @@ import java.util.*;
 // controlling class for the game
 public class FloxelsStory extends Story {
   
+  // story event: close the game
+  public static class EventExitGame extends StoryEvent {
+  } // FloxelsStory.EventExitGame
+
   // description of the majority population
   static private final String kDescriptions[] 
       = { "Evil", "Treacherous", "Brutal", "Decadent", "Tyrannical",
@@ -103,6 +107,11 @@ public class FloxelsStory extends Story {
         prepareNewStory(spriteManager);
         it.remove();
       } // Story.EventGameBegins
+
+      if ( event instanceof FloxelsStory.EventExitGame ) {
+        Env.exit();
+        it.remove();
+      } // FloxelsStory.EventExitGame
 
       if ( event instanceof LaunchCursor.EventComplete ) {
         mRestartTimer = kRestartInitialDelay;

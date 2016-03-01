@@ -121,6 +121,9 @@ public class Floxels extends Sprite {
   
   // call all player floxels to the pull position
   private boolean mSummonFloxels;
+
+  // if true, floxels don't recover from being stunned
+  private boolean mPlayDead;
   
   // constructor
   public Floxels(Flow flows[]) {
@@ -166,6 +169,8 @@ public class Floxels extends Sprite {
     mPullXPos = mPullYPos = mPullRadius = 0.0f;
     mSummonFloxels = false;
     
+    mPlayDead = false;
+    
   } // constructor
 
   // the total number of floxels supported
@@ -195,6 +200,9 @@ public class Floxels extends Sprite {
     mTypeColours[type] = colour;
     
   } // setFloxelColour()
+  
+  // whether the floxels recover from being stunned
+  public void setPlayDead(boolean dead) { mPlayDead = dead; }
   
   // access (read-only) to the floxel count per grid square
   public int[][] countFloxels(int type) { 
@@ -314,9 +322,9 @@ public class Floxels extends Sprite {
   } // reclaimFloxels()
   
   // temporarily disable all floxels in an annular region
-  public void stunFloxels(float x, float y, 
-                          float radiusMin, float radiusMax,
-                          int type) {
+  public int stunFloxels(float x, float y, 
+                         float radiusMin, float radiusMax,
+                         int type) {
 
     assert( radiusMin >= 0.0f && radiusMax > radiusMin );
     assert( type >= -1 && type < mNumFloxelTypes );
@@ -324,6 +332,8 @@ public class Floxels extends Sprite {
     final float r2A = radiusMin*radiusMin,
                 r2B = radiusMax*radiusMax;
 
+    int num = 0;
+    
     for ( Floxel floxel : mFloxels ) {
       if ( floxel.mState != Floxel.State.NORMAL &&
            floxel.mState != Floxel.State.SPLATTED &&
@@ -337,8 +347,11 @@ public class Floxels extends Sprite {
         floxel.mTimer = (short)kStunTimeMax;
         floxel.mCluster = 0;
         floxel.mFace = (byte)Floxel.STUN_FACE;
+        num += 1;
       }
     }
+
+    return num;
     
   } // stunFloxels()
   
@@ -513,7 +526,11 @@ public class Floxels extends Sprite {
         } else if ( floxel.mTimer < kStunTimeWake ) {
           slowdown = 1.0f - floxel.mTimer/(float)kStunTimeWake;
         } else if ( floxel.mTimer == kStunTimeWake ) {
-          floxel.mFace = (byte)Env.randomInt(Floxel.NUM_EXPRESSIONS);
+          if ( mPlayDead ) {
+            floxel.mTimer += 1;
+          } else {
+            floxel.mFace = (byte)Env.randomInt(Floxel.NUM_EXPRESSIONS);
+          }
           slowdown = 0.0f;
         } else if ( floxel.mTimer < kStunTimeMax-kStunTimeHalt ) {
           slowdown = 0.0f;
