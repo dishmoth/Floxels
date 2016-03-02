@@ -21,7 +21,7 @@ public class Env {
                           WEST  = 3;
   
   // size of a square tile
-  static private int kTileWidth = 58;
+  static private int kTileWidth = 0;
   
   // number of tiles in the game area
   static private int kNumTilesX = 0,
@@ -35,7 +35,7 @@ public class Env {
   static private int kFrameRate = 0;
   
   // label to use for debug logging
-  private static final String kLogTag = "Floxels";
+  static private final String kLogTag = "Floxels";
   
   // whether to display debug messages
   static private boolean kDebugMode = true;

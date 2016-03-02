@@ -96,10 +96,10 @@ public class TextObject extends Sprite {
   } // constructor
 
   // access to position (tile units)
-  public float xMin() { return mXMin/Env.tileWidth(); }
-  public float xMax() { return mXMax/Env.tileWidth(); }
-  public float yMin() { return mYMin/Env.tileWidth(); }
-  public float yMax() { return mYMax/Env.tileWidth(); }
+  public float xMin() { return (mXMin - Env.gameOffsetX())/Env.tileWidth(); }
+  public float xMax() { return (mXMax - Env.gameOffsetX())/Env.tileWidth(); }
+  public float yMin() { return (mYMin - Env.gameOffsetY())/Env.tileWidth(); }
+  public float yMax() { return (mYMax - Env.gameOffsetY())/Env.tileWidth(); }
   
   // move the text (tile units)
   public void translate(float dx, float dy) {
