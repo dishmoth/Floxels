@@ -124,7 +124,7 @@ public class FloxelsStory extends Story {
       if ( event instanceof Cursor.EventFloxelsSummoned ) {
         fadeText(spriteManager);
         it.remove();
-      } // LaunchCursor.EventFloxelsSummoned
+      } // Cursor.EventFloxelsSummoned
       
       if ( event instanceof Floxels.EventPopulationDestroyed ) {
         if ( mFloxels.numFloxels(kMajorityType) == 0 ) {

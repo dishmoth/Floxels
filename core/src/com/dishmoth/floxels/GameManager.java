@@ -6,7 +6,6 @@
 
 package com.dishmoth.floxels;
 
-import java.awt.*;
 import java.util.*;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
