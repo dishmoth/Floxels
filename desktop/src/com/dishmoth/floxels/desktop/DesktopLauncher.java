@@ -1,5 +1,6 @@
 package com.dishmoth.floxels.desktop;
 
+import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
@@ -16,6 +17,9 @@ public class DesktopLauncher {
     config.width = size;
     config.height = size;
     config.resizable = false;
+    config.addIcon("DesktopIcon128.png", FileType.Internal);
+    config.addIcon("DesktopIcon32.png", FileType.Internal);
+    config.addIcon("DesktopIcon16.png", FileType.Internal);
 		new LwjglApplication(new FloxelsGame(), config);
 	}
 }
