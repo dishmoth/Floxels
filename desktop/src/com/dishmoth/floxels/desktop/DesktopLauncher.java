@@ -14,6 +14,7 @@ public class DesktopLauncher {
 	  final int size = 10*Math.round(scale*Math.min(dm.width,dm.height)/10);
 	  
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+    config.title = "Floxels";
     config.width = size;
     config.height = size;
     config.resizable = false;
