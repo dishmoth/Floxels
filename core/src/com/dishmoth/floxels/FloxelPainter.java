@@ -149,13 +149,22 @@ public class FloxelPainter {
           b = rgb[2]/255.0f;
     
     final float shade = shadeInd/(Floxel.NUM_SHADES-1.0f);
-    final float shade2 = shade*shade;
     
-    final float hE = shade2*kFaceEdgeMaxWhiteness;
-    final float rE = (1-hE)*r + hE,
-                gE = (1-hE)*g + hE,
-                bE = (1-hE)*b + hE;
-
+    float rE, gE, bE;
+    final float shadeChange = 0.25f;
+    if ( shade <= shadeChange ) {
+      final float hE = 0.6f + 0.4f*(shade/shadeChange);
+      rE = hE*r;
+      gE = hE*g;
+      bE = hE*b;
+    } else {
+      final float s = (shade-shadeChange)/(1.0f-shadeChange);
+      final float hE = s*s*kFaceEdgeMaxWhiteness;
+      rE = (1-hE)*r + hE;
+      gE = (1-hE)*g + hE;
+      bE = (1-hE)*b + hE;
+    }
+    
     final float hF = (1.0f-shade)*kFaceFillMinBlackness + shade;
     final float rF = hF*r,
                 gF = hF*g,

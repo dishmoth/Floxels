@@ -64,7 +64,8 @@ public class Clusters {
     mYSize = mSubdivisions*mBaseYSize;
     
     mMaxClusterSize = Math.round(0.8f*numParticles);
-    mClusterScoreScale = maxClusterScore() / Math.log(mMaxClusterSize);
+    final double logMax = Math.log(mMaxClusterSize);
+    mClusterScoreScale = maxClusterScore() / (logMax * logMax);
     
     mData = new int[mYSize][mXSize];
     mClusters = new int[100];
@@ -126,7 +127,8 @@ public class Clusters {
   public int clusterScore(int size) {
     
     if ( size == 0 ) return 0;
-    int score = (int)Math.round( mClusterScoreScale * Math.log(size) );
+    double logSize = Math.log(size);
+    int score = (int)Math.round( mClusterScoreScale * logSize * logSize );
     return Math.min( maxClusterScore(), score );
     
   } // clusterScore()
