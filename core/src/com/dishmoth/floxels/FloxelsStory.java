@@ -295,10 +295,8 @@ public class FloxelsStory extends Story {
     mMajorityPopulation = 0;
     for ( int level = 0 ; level <= mLevel ; level++ ) {
       if      ( mMajorityPopulation ==  0 ) mMajorityPopulation =  400;
-      else if ( mMajorityPopulation < 300 ) mMajorityPopulation += 100;
-      else if ( mMajorityPopulation < 400 ) mMajorityPopulation += 50;
-      else if ( mMajorityPopulation < 600 ) mMajorityPopulation += 25;
-      else if ( mMajorityPopulation < 800 ) mMajorityPopulation += 20;
+      else if ( mMajorityPopulation < 500 ) mMajorityPopulation += 25;
+      else if ( mMajorityPopulation < 700 ) mMajorityPopulation += 20;
       else                                  mMajorityPopulation += 10;
     }
     
@@ -312,7 +310,7 @@ public class FloxelsStory extends Story {
     } else {
       final float h = (mMajorityPopulation-kMajorityPopulationMax)/10.0f;
       assert( h > 0.0f );
-      mDifficultyFactor = minFactor + 0.01f*h;
+      mDifficultyFactor = minFactor + 0.005f*h;
     }
 
     mMajorityPopulation = Math.min(mMajorityPopulation, 
