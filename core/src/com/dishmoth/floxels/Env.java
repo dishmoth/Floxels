@@ -11,6 +11,7 @@ import java.util.*;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Application.ApplicationType;
+import com.badlogic.gdx.graphics.Pixmap;
 
 public class Env {
 
@@ -120,6 +121,12 @@ public class Env {
   
   // end the game, close the window/shut the app
   static public void exit() { Gdx.app.exit(); }
+
+  // make the mouse cursor disappear (on desktop)
+  static public void hideCursor() {
+    Pixmap p = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+    Gdx.graphics.setCursor( Gdx.graphics.newCursor(p,0,0) );
+  } // hideCursor()
   
   // assorted functions for returning random numbers
   static public float randomFloat() { // in range [0,1]
