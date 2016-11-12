@@ -117,9 +117,15 @@ public class TextObject extends Sprite {
   // make the image go away
   public void fade() {
 
-    assert( !mFadeIn );
-    assert( mFadeTimer == 0.0f );
-    mFadeTimer = kFadeOutDelay + kAlphaOutTime;
+    if ( mFadeIn ) {
+      mFadeTimer = (1.0f - mFadeTimer/kAlphaInTime)*kAlphaOutTime;
+      mFadeTimer = Math.max(mFadeTimer, Env.TICK_TIME);
+    } else if ( mFadeTimer == 0.0f ) {
+      mFadeTimer = kFadeOutDelay + kAlphaOutTime;
+    } else {
+      mFadeTimer = Math.min(mFadeTimer, kFadeOutDelay + kAlphaOutTime);
+    }
+    mFadeIn = false;
     
   } // fade()
   

@@ -79,6 +79,12 @@ public class FloxelsStory extends Story {
   // seconds until new floxels can be introduced (or zero)
   private float mRestartTimer;
 
+  // seconds until the instruction text changes (or zero)
+  private float mInstructionTimer;
+
+  // which line of instructions to display next
+  private int mInstructionIndex;
+  
   // true if the minority is suddenly on the offensive
   private boolean mReversed;
   
@@ -188,6 +194,11 @@ public class FloxelsStory extends Story {
       mScore.set(num);
     }
 
+    // occasionally vary the instruction text
+    if ( mInstructionTimer > 0 ) {
+      changeInstructions(spriteManager);
+    }
+    
     // check the 'back' button
     if ( Env.quitButton() ) {
       if ( !mQuitTriggered ) {
@@ -336,6 +347,8 @@ public class FloxelsStory extends Story {
     
     mIntroTimer = kIntroDelay;
     mRestartTimer = 0.0f;
+    mInstructionTimer = 0.0f;
+    mInstructionIndex = 0;
     
     mReversed = false;
     
@@ -539,18 +552,72 @@ public class FloxelsStory extends Story {
   // display some text
   private void addInstructions(SpriteManager spriteManager, float delay) {
     
+    float y0 = 0.5f*Env.numTilesY(),
+          dy = 0.75f;
+    
     String name = ColourScheme.name( mColourScheme.oldIndex() );
     String description = kDescriptions[ mLevel % kDescriptions.length ];
     
-    float y0 = 0.5f*Env.numTilesY(),
-          dy = 0.75f;
     spriteManager.addSprite(new TextObject("Overthrow the " + description 
                                            + " " + name, 
                                            y0+dy, true, delay));
-    spriteManager.addSprite(new TextObject((Env.touchScreen()?"Press":"Click")
-                                           + " & Drag to Command", 
+    
+    mInstructionTimer = 7.0f;
+    mInstructionIndex = 0;
+    
+    spriteManager.addSprite(new TextObject(nextInstructionText(), 
                                            y0-dy, true, delay));
     
   } // addInstructions()
+  
+  // get the next line of instruction text
+  private String nextInstructionText() {
+    
+    String text = null;
+    if ( mInstructionIndex == 0 ) {
+      text = (Env.touchScreen()?"Press":"Click") + " & Drag to Command";
+      mInstructionIndex += 1;
+    } else if ( mInstructionIndex == 1 ) {
+      text = "Big groups are bright and strong";
+      mInstructionIndex += 1;
+    } else if ( mInstructionIndex == 2 ) {
+      text = "Small groups are dark and weak";
+      mInstructionIndex += 1;
+    } else {
+      text = "Strong floxels convert weak ones";
+      mInstructionIndex = 0;
+    }
+    return text;
+    
+  } // instructionText()
+  
+  // modify the instruction text
+  private void changeInstructions(SpriteManager spriteManager) {
+
+    if ( mInstructionTimer == 0.0f ) return;
+    
+    final float y = 0.5f*Env.numTilesY() - 0.75f;
+
+    TextObject text = null;
+    for ( Sprite sp : spriteManager.list() ) {
+      if ( sp instanceof TextObject ) {
+        TextObject t = (TextObject)sp;
+        if ( y > t.yMin() && y < t.yMax() ) text = t;
+      }
+    }
+    if ( text == null ) {
+      mInstructionTimer = 0.0f;
+      return;
+    }
+    
+    mInstructionTimer -= Env.TICK_TIME;
+    if ( mInstructionTimer <= 0.0f ) {
+      text.fade();
+      spriteManager.addSprite(new TextObject(nextInstructionText(), 
+                                             y, true, 0.2f));
+      mInstructionTimer = 6.0f;
+    }
+    
+  } // updateInstructions()
   
 } // class FloxelsStory
