@@ -199,6 +199,9 @@ public class Cursor extends Sprite implements SourceTerm {
   // whether the cursor is is summoning mode
   public boolean summoning() { return mSummoning; }
   
+  // break the summons (when quitting the game)
+  public void cancelSummons() { mInitialSummons = mSummoning = false; } 
+  
   // update the cursor state and animate any captured floxels
   @Override
   public void advance(LinkedList<Sprite> addTheseSprites,

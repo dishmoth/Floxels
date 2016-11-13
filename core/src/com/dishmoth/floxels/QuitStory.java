@@ -106,6 +106,8 @@ public class QuitStory extends Story {
       Floxels floxels = (Floxels)spriteManager.findSpriteOfType(Floxels.class);
       spriteManager.addSprite(new EndBlast(x, y, floxels));
       floxels.setPlayDead(true);
+      Cursor cursor = (Cursor)spriteManager.findSpriteOfType(Cursor.class);
+      if ( cursor != null ) cursor.cancelSummons();
       Env.sounds().play(Sounds.END_BLAST);
       Env.mouse().disableMouse( 5*Env.TICKS_PER_SEC );
       mFinished = true;

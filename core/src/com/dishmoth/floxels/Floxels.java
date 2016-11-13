@@ -122,7 +122,7 @@ public class Floxels extends Sprite {
   // call all player floxels to the pull position
   private boolean mSummonFloxels;
 
-  // if true, floxels don't recover from being stunned
+  // if true, floxels don't recover from being stunned (when quitting the game)
   private boolean mPlayDead;
   
   // constructor
@@ -345,7 +345,8 @@ public class Floxels extends Sprite {
       if ( d2 >= r2A && d2 < r2B ) {
         floxel.mState = Floxel.State.STUNNED;
         floxel.mTimer = (short)kStunTimeMax;
-        floxel.mCluster = 0;
+        floxel.mCluster = mPlayDead ? (byte)Env.randomInt( floxel.mCluster+1 )
+                                    : 0;
         floxel.mFace = (byte)Floxel.STUN_FACE;
         num += 1;
       }
@@ -645,7 +646,7 @@ public class Floxels extends Sprite {
   // convert floxels if they collide with stronger ones of the other type
   private void fightFloxels() {
     
-    if ( mSummonFloxels ) return;
+    if ( mSummonFloxels || mPlayDead ) return;
     
     assert( mNumFloxelTypes == 2 );
     

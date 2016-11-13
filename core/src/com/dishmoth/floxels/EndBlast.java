@@ -78,16 +78,11 @@ public class EndBlast extends Sprite implements SourceTerm {
     final float dr = kStunSpeed*dt;
     mStunRadius += dr;
     
-    int num = mFloxels.stunFloxels(mXPos, mYPos, 
-                                   Math.max(0.0f, mStunRadius-1.2f*dr),
-                                   mStunRadius, 
-                                   0)
-            + mFloxels.stunFloxels(mXPos, mYPos, 
-                                   Math.max(0.0f, mStunRadius-1.2f*dr),
-                                   mStunRadius, 
-                                   1);
-    
-    Env.sounds().playDeathSounds(new int[]{0,num});
+    mFloxels.stunFloxels(mXPos, mYPos, 
+                         Math.max(0.0f, mStunRadius-3.0f*dr),
+                         mStunRadius, 
+                         -1);    
+    //Env.sounds().playDeathSounds(new int[]{0,num});
     
   } // Sprite.advance()
 
