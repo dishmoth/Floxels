@@ -575,7 +575,7 @@ public class FloxelsStory extends Story {
     
     String text = null;
     if ( mInstructionIndex == 0 ) {
-      text = (Env.touchScreen()?"Press":"Click") + " & Drag to Command";
+      text = (Env.touchScreen()?"Press":"Click") + " & drag to command";
       mInstructionIndex += 1;
     } else if ( mInstructionIndex == 1 ) {
       text = "Big groups are bright and strong";
@@ -584,7 +584,7 @@ public class FloxelsStory extends Story {
       text = "Small groups are dark and weak";
       mInstructionIndex += 1;
     } else {
-      text = "Strong floxels convert weak ones";
+      text = "Strong floxels convert weaker ones";
       mInstructionIndex = 0;
     }
     return text;
