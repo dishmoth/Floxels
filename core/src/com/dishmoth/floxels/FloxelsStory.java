@@ -547,6 +547,8 @@ public class FloxelsStory extends Story {
       }
     }
     
+    mInstructionTimer = 0.0f;
+    
   } // fadeText()
 
   // display some text
@@ -562,7 +564,7 @@ public class FloxelsStory extends Story {
                                            + " " + name, 
                                            y0+dy, true, delay));
     
-    mInstructionTimer = 7.0f;
+    mInstructionTimer = 7.5f;
     mInstructionIndex = 0;
     
     spriteManager.addSprite(new TextObject(nextInstructionText(), 
@@ -575,16 +577,20 @@ public class FloxelsStory extends Story {
     
     String text = null;
     if ( mInstructionIndex == 0 ) {
-      text = (Env.touchScreen()?"Press":"Click") + " & drag to command";
+      text = (Env.touchScreen() ? "Press" : "Click") 
+             + " to call Floxels into your bubble";
       mInstructionIndex += 1;
     } else if ( mInstructionIndex == 1 ) {
-      text = "Big groups are bright and strong";
+      text = "Drag bubble to make Floxels chase after it";
       mInstructionIndex += 1;
     } else if ( mInstructionIndex == 2 ) {
+      text = "Floxels in big groups are bright and strong";
+      mInstructionIndex += 1;
+    } else if ( mInstructionIndex == 3 ) {
       text = "Small groups are dark and weak";
       mInstructionIndex += 1;
     } else {
-      text = "Strong floxels convert weaker ones";
+      text = "Strong Floxels convert weaker ones";
       mInstructionIndex = 0;
     }
     return text;
@@ -605,7 +611,7 @@ public class FloxelsStory extends Story {
         if ( y > t.yMin() && y < t.yMax() ) text = t;
       }
     }
-    if ( text == null ) {
+    if ( text == null || text.fading() ) {
       mInstructionTimer = 0.0f;
       return;
     }
