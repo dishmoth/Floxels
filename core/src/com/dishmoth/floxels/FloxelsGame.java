@@ -36,6 +36,9 @@ public class FloxelsGame implements ApplicationListener {
   // Called when the application is first created.
 	public void create() {
 
+    Env.debug("Floxels (v1.0.0, 21st December 2016)");
+    Env.debug("Contact: dishmoth@yahoo.co.uk, www.dishmoth.com");
+    
 	  Env.debug("create()");
 	  
     Env.initialize();
