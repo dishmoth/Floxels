@@ -1,3 +1,9 @@
+/*
+ *  AndroidLauncher.java
+ *  Copyright (c) 2016 Simon Hern
+ *  Contact: dishmoth@yahoo.co.uk, dishmoth.com, github.com/dishmoth
+ */
+
 package com.dishmoth.floxels.android;
 
 import android.content.pm.ActivityInfo;

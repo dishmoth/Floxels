@@ -1,7 +1,7 @@
 /*
  *  EndBlast.java
- *  Copyright Simon Hern 2016
- *  Contact: dishmoth@yahoo.co.uk, www.dishmoth.com
+ *  Copyright (c) 2016 Simon Hern
+ *  Contact: dishmoth@yahoo.co.uk, dishmoth.com, github.com/dishmoth
  */
 
 package com.dishmoth.floxels;

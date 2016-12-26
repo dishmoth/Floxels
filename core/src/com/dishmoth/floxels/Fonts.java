@@ -1,7 +1,7 @@
 /*
  *  Fonts.java
- *  Copyright Simon Hern 2015
- *  Contact: dishmoth@yahoo.co.uk, www.dishmoth.com
+ *  Copyright (c) 2016 Simon Hern
+ *  Contact: dishmoth@yahoo.co.uk, dishmoth.com, github.com/dishmoth
  */
 
 package com.dishmoth.floxels;
@@ -13,7 +13,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 // class for holding different bitmap fonts
 public class Fonts {
 
-  //
+  // file naming
   private static final String kFontName      = "calibri",
                               kFontNameLarge = "calibri_light";
   private static final int    kFontSizeLarge = 25;

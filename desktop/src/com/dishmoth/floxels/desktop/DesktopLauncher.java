@@ -1,3 +1,9 @@
+/*
+ *  DesktopLauncher.java
+ *  Copyright (c) 2016 Simon Hern
+ *  Contact: dishmoth@yahoo.co.uk, dishmoth.com, github.com/dishmoth
+ */
+
 package com.dishmoth.floxels.desktop;
 
 import com.badlogic.gdx.Files.FileType;

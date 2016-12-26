@@ -1,7 +1,7 @@
 /*
  *  Flow.java
- *  Copyright Simon Hern 2010
- *  Contact: dishmoth@yahoo.co.uk, www.dishmoth.com
+ *  Copyright (c) 2016 Simon Hern
+ *  Contact: dishmoth@yahoo.co.uk, dishmoth.com, github.com/dishmoth
  */
 
 package com.dishmoth.floxels;
@@ -97,7 +97,7 @@ public class Flow {
     
   } // clearSource()
   
-  // produce a solution
+  // produce a solution (multi-grid method)
   public void solve() { mTopGrid.solve(); }
 
   // calculate and return velocity at a position
