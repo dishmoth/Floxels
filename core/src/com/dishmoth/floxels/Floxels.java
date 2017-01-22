@@ -459,7 +459,10 @@ public class Floxels extends Sprite {
                       LinkedList<Sprite> killTheseSprites,
                       LinkedList<StoryEvent> newStoryEvents) {
 
-    int oldNumFloxels[] = mNumActiveFloxels.clone();
+    int oldNumFloxels[] = new int[mNumFloxelTypes];
+    for ( int type = 0 ; type < mNumFloxelTypes ; type++ ) {
+      oldNumFloxels[type] = mNumActiveFloxels[type];
+    }
     
     if ( mSummonFloxels ) {
       if ( mPullType == -1 ) {

@@ -105,10 +105,15 @@ public class Env {
           || Gdx.app.getType() == ApplicationType.iOS );
   } // touchScreen()
 
+  // whether the game is running in a web page
+  static public boolean webPage() {
+    return ( Gdx.app.getType() == ApplicationType.WebGL );
+  } // webPage()
+  
   // check for 'back' button on android
   static public boolean quitButton() {
-    return ( Gdx.input.isKeyPressed(Input.Keys.BACK) ||
-             Gdx.input.isKeyPressed(Input.Keys.ESCAPE) );
+    return ( !Env.webPage() && (Gdx.input.isKeyPressed(Input.Keys.BACK) ||
+                                Gdx.input.isKeyPressed(Input.Keys.ESCAPE)) );
   } // quitButton()
   
   // return reference to mouse monitor
@@ -178,5 +183,22 @@ public class Env {
   static public float foldNearTo(float a, float target, float modSize) {
     return ( target + fold(a-target+0.5f*modSize, modSize) - 0.5f*modSize );
   } // foldNearTo()
+
+  // quick replacement for String.format(), which GWT doesn't like
+  static public String decimalPlaces(float value, int dp) {
+    if ( dp <= 0 ) return String.valueOf((int)Math.round(value));
+    int fac = (int)Math.round(Math.pow(10, dp));
+    int num = (int)Math.round(value*fac);
+    int numInt = num/fac;
+    StringBuilder str = new StringBuilder( String.valueOf(numInt) + "." );
+    num = Math.abs(num - numInt*fac);
+    for ( int k = 0 ; k < dp ; k++ ) {
+      fac = fac/10;
+      numInt = num/fac;
+      str.append(numInt);
+      num = num - numInt*fac;
+    }
+    return str.toString();
+  } // decimalPlaces()
   
 } // class Env

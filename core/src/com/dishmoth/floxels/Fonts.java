@@ -71,7 +71,7 @@ public class Fonts {
       font.getData().setScale(scale);
       font.setUseIntegerPositions(false);
       Env.debug("Using font: " + fileName + " (x" +
-                String.format("%.2f", scale) + ")");
+                Env.decimalPlaces(scale, 2) + ")");
     } else {
       Env.debug("Using font: " + fileName);
     }

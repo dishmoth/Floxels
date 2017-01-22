@@ -85,13 +85,13 @@ class TimingStats {
     mFpsUpdates++;
     
     if ( mTotalSeconds > kReportSeconds ) {
-      Env.debug( String.format("%.1f", mNumUpdates/mTotalSeconds)
+      Env.debug( Env.decimalPlaces(mNumUpdates/mTotalSeconds, 1)
                + " fps (mean="
-               + String.format("%.1f", 1000*mTotalSeconds/mNumUpdates)
+               + Env.decimalPlaces(1000*mTotalSeconds/mNumUpdates, 1)
                + "ms, min="
-               + String.format("%.1f", 1000*mMinSeconds)
+               + Env.decimalPlaces(1000*mMinSeconds, 1)
                + "ms, max="
-               + String.format("%.1f", 1000*mMaxSeconds)
+               + Env.decimalPlaces(1000*mMaxSeconds, 1)
                + "ms)" );
       clear();
     }
