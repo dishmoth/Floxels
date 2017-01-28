@@ -40,8 +40,8 @@ public class PatchPainter {
     final int size = 3 + 2*kBorderPixels;
     mPixmap = new Pixmap(size, size, Format.RGBA8888);
 
-    Pixmap.Blending oldMode = Pixmap.getBlending();
-    Pixmap.setBlending(Pixmap.Blending.None);
+    Pixmap.Blending oldMode = mPixmap.getBlending();
+    mPixmap.setBlending(Pixmap.Blending.None);
     for ( int iy = 0 ; iy < size ; iy++ ) {
        for ( int ix = 0 ; ix < size ; ix++ ) {
          int dx = Math.max(0, Math.abs( ix - size/2 ) - 1),
@@ -54,7 +54,7 @@ public class PatchPainter {
          mPixmap.drawPixel(ix, iy, colour);
        }
     }
-    Pixmap.setBlending(oldMode);    
+    mPixmap.setBlending(oldMode);    
     
     mBorderSize = kBorderScale*tileWidth;
     

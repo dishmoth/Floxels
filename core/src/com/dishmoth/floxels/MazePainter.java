@@ -85,10 +85,10 @@ public class MazePainter {
 
     mEndShift = (mPixmapSize%2==0) ? 0.5f*(mDistWhite+mDistBlack) : mDistBlack;
     
-    Pixmap.Blending oldMode = Pixmap.getBlending();
-    Pixmap.setBlending(Pixmap.Blending.None);
+    Pixmap.Blending oldMode = mPixmap.getBlending();
+    mPixmap.setBlending(Pixmap.Blending.None);
     for ( int k = 0 ; k < 8 ; k++ ) makeCornerImage(k);
-    Pixmap.setBlending(oldMode);
+    mPixmap.setBlending(oldMode);
     
     //PixmapIO.writePNG(Gdx.files.external("pixmap.png"), mPixmap);
 

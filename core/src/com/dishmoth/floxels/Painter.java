@@ -85,15 +85,15 @@ public class Painter {
               xPatch  = xMaze + mazePixmap.getWidth(),
               yPatch  = yMaze;
     
-    Pixmap.Blending oldMode = Pixmap.getBlending();
-    Pixmap.setBlending(Pixmap.Blending.None);
+    Pixmap.Blending oldMode = mPixmap.getBlending();
+    mPixmap.setBlending(Pixmap.Blending.None);
     
     mPixmap.drawPixmap(floxelPixmap, xFloxel, yFloxel);
     mPixmap.drawPixmap(splatPixmap,  xSplat, ySplat);
     mPixmap.drawPixmap(mazePixmap, xMaze, yMaze);
     mPixmap.drawPixmap(patchPixmap, xPatch, yPatch);
     
-    Pixmap.setBlending(oldMode);
+    mPixmap.setBlending(oldMode);
     
     //PixmapIO.writePNG(Gdx.files.external("pixmap.png"), mPixmap);
 

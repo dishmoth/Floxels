@@ -201,8 +201,8 @@ public class FloxelPainter {
   // create the pixels for one splat
   private void prepareSplat(int colInd, int x, int y, Pixmap splatImage) {
     
-    Pixmap.Blending oldMode = Pixmap.getBlending();
-    Pixmap.setBlending(Pixmap.Blending.None);
+    Pixmap.Blending oldMode = mSplatPixmap.getBlending();
+    mSplatPixmap.setBlending(Pixmap.Blending.None);
     
     mSplatPixmap.setColor(1.0f, 1.0f, 1.0f, 0.0f);
     mSplatPixmap.fillRectangle(x-1, y-1, 
@@ -214,7 +214,7 @@ public class FloxelPainter {
                      x, y, splatImage, 
                      rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f);
     
-    Pixmap.setBlending(oldMode);
+    mSplatPixmap.setBlending(oldMode);
     
   } // prepareSplat()
   
