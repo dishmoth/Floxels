@@ -4,7 +4,7 @@
  *  Contact: dishmoth@yahoo.co.uk, dishmoth.com, github.com/dishmoth
  */
 
-package com.dishmoth.floxels.android;
+package com.dishmoth.floxels;
 
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -12,11 +12,9 @@ import android.os.Bundle;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import com.dishmoth.floxels.FloxelsGame;
 
-// This launcher is a copy of the one in com.dishmoth.floxels.
-// That one is consistent with the standard libGDX set up.
-// This copy is needed by the Google Play store for APK consistency.
+// This launcher is consistent with the standard libGDX set up.
+// But the copy in com.dishmoth.floxels.android is the one that's used.
 public class AndroidLauncher extends AndroidApplication {
 	
   @Override

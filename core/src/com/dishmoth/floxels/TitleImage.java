@@ -111,14 +111,13 @@ public class TitleImage extends Sprite {
   // display the image
   @Override
   public void draw(SpriteBatch batch) {
-    
-    Color oldColour = batch.getColor();
+
     batch.setColor(kTintShade, kTintShade, kTintShade, mAlpha);
     batch.draw(mImage, mImageXPos, mImageYPos, mImageWidth, mImageHeight);
-    batch.setColor(oldColour);
-    
+    batch.setColor(Color.WHITE);
+
     mText.draw(batch);
-    
+
   } // Sprite.draw()
 
 } // class TitleImage

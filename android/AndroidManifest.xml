@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.dishmoth.floxels.android"
-    android:versionCode="2"
-    android:versionName="1.0.0"
-    android:installLocation="preferExternal" >
-    
-    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="23" />
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.dishmoth.floxels.android">
+
+    <uses-feature android:glEsVersion="0x00020000" android:required="true" />
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="true"
         android:icon="@drawable/icon"
+        android:isGame="true"
+        android:appCategory="game"
         android:label="@string/app_name"
-        android:theme="@style/GdxTheme" >
+        tools:ignore="UnusedAttribute">
         <activity
             android:name="com.dishmoth.floxels.android.AndroidLauncher"
             android:label="@string/app_name" 
             android:screenOrientation="unspecified"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize">
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
