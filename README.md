@@ -4,7 +4,7 @@ around in gangs, and converting other Floxels to their colour.
 
 ![Floxels](http://dishmoth.com/wp-content/uploads/2012/04/pic_fl_large-1.png)
 
-Play on Windows/OSX/Linux:
+Play in browser or download for Windows/OSX/Linux:
 [itch.io](https://dishmoth.itch.io/floxels)
 
 Play on Android:
@@ -20,6 +20,20 @@ Set up your development environment following the
 [libGDX instructions](https://github.com/libgdx/libgdx/wiki).
 Clone or download the repository, and import it into your development environment to build
 and run.
+
+### Platforms
+LibGDX allows the project to be built for assorted targets: Windows, OSX, Linux, Android,
+HTML, and iOS (although that's not been tried yet).
+
+### Project layout
+The project follows the usual libGDX layout, with a main folder for the source code, and
+different folders to support building for different targets. 
+- `core` -  the main source code, common to all targets 
+- `desktop` - specifics for desktop targets (Windows, OSX, Linux)
+- `android` - specifics for Android
+- `assets` - image and audio assets, common to all targets
+- `html` - specifics for HTML
+- `ios` - specifics for iOS (untested)
 
 ### How it works (the science bit)
 Floxels behave according to a mash-up of half-remembered bits of physics, hacked together
